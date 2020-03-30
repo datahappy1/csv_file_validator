@@ -1,2 +1,2 @@
-# file_validator
-Python 3+ file validation framework using Pydantic and dependency injection
+# csv_file_validator
+Python 3+ CSV file validation framework using Pandas and dependency injection

@@ -46,6 +46,14 @@ class validate:
     def __init__(config):
         self.config = config
 
+    def _high_severity_validations():
+        pass
+
+    def _low_severity_validations():
+        pass
+
+
+
     def read_file():
         data = pd.read_csv("test1.csv",
                            dtype=config.get('column_datatypes'),
