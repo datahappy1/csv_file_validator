@@ -19,6 +19,7 @@ config = {
         'file_row_count_range': [0, 50],
     },
     'low_severity_validations': {
+        'file_value_separator': ',',
         'file_has_header': True,
         'file_header_column_names': ['col1', 'col2', 'col3'],
         'column_datatypes': {
@@ -28,7 +29,7 @@ config = {
         },
         'column_validation_rules': {
             'col1': {
-                'allow_fixed_value_list': ['xxx', 'yyy']
+                'allow_numeric_value_range': [0, 100]
             },
             'col2': {
                 'allow_fixed_value_list': ['yyy', 'www'],

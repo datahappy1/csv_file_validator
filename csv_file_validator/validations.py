@@ -10,6 +10,10 @@ def file_size_range(file_size):
     pass
 
 
+def file_value_separator():
+    pass
+
+
 def row_count_range(df):
     pass
 
@@ -23,6 +27,10 @@ def file_header_column_names():
 
 
 def column_datatypes():
+    pass
+
+
+def allow_numeric_value_range():
     pass
 
 
