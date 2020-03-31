@@ -1,4 +1,5 @@
 import platform
+from types import SimpleNamespace, FunctionType
 from csv_file_validator import validations
 
 pf = platform.system()
@@ -48,19 +49,27 @@ class Validate:
     def __init__(self, config):
         self.config = config
 
-    def _high_severity_validations(self):
-        x = {v for v in self.config.get('high_severity_validations')}
-        print(x)
+    def _get_config(self):
+        if isinstance(self.config, dict):
+            return SimpleNamespace(**self.config)
+        else:
+            raise
 
-    def _low_severity_validations(self):
-        y = {v for v in self.config.get('low_severity_validations')}
-        print(y)
+    def _get_high_severity_validations(self):
+        return {k: v for k, v in self.config.get('high_severity_validations').items()}
+
+    def _get_low_severity_validations(self):
+        return {k: v for k, v in self.config.get('low_severity_validations').items()}
+
+    def _get_all_severity_validations(self):
+        return {**self._get_high_severity_validations(), **self._get_low_severity_validations()}
 
     def _get_validation(self, validation_rule):
-        pass
+        return {k: v for k, v in self._get_all_severity_validations().items() if k == validation_rule}
 
-    def _get_column_validation_rule(self):
-        pass
+    def _instantiate_validation(self):
+        for k, v in self._get_all_severity_validations().items():
+            setattr(self, k, v)
 
     def read_file(self):
         data = pd.read_csv("test1.csv",
@@ -74,7 +83,9 @@ class Validate:
 
 vobj = Validate(config)
 Validate.read_file(vobj)
-Validate._high_severity_validations(vobj)
-Validate._low_severity_validations(vobj)
-
-
+print(Validate._get_high_severity_validations(vobj))
+print(Validate._get_low_severity_validations(vobj))
+print(Validate._get_all_severity_validations(vobj))
+print(Validate._get_validation(vobj, validation_rule="file_has_header"))
+print(Validate._instantiate_validation(vobj))
+Validate.allow_numeric_range_value()
