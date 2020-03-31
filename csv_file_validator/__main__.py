@@ -43,23 +43,38 @@ config = {
     }
 }
 
-class validate:
-    def __init__(config):
+
+class Validate:
+    def __init__(self, config):
         self.config = config
 
-    def _high_severity_validations():
+    def _high_severity_validations(self):
+        x = {v for v in self.config.get('high_severity_validations')}
+        print(x)
+
+    def _low_severity_validations(self):
+        y = {v for v in self.config.get('low_severity_validations')}
+        print(y)
+
+    def _get_validation(self, validation_rule):
         pass
 
-    def _low_severity_validations():
+    def _get_column_validation_rule(self):
         pass
 
-
-
-    def read_file():
+    def read_file(self):
         data = pd.read_csv("test1.csv",
-                           dtype=config.get('column_datatypes'),
-                           sep=",",
+                           dtype=self.config.get('low_severity_validations').get('column_datatypes'),
+                           sep=self.config.get('low_severity_validations').get('file_value_separator'),
                            header=1,
                            engine="c")
 
-print(data)
+        print(data)
+
+
+vobj = Validate(config)
+Validate.read_file(vobj)
+Validate._high_severity_validations(vobj)
+Validate._low_severity_validations(vobj)
+
+
