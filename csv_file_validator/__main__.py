@@ -1,4 +1,5 @@
 import platform
+import os, re
 from types import SimpleNamespace, FunctionType
 from csv_file_validator import validations
 
@@ -58,11 +59,35 @@ class Validate:
     def __init__(self, config):
         self.config = config
 
+
+    def _function_caller(self, attribute, **kwargs):
+        attribute_func_map = {
+            "file_extension": validations.check_file_extension,
+            "file_mask": validations.check_filemask,
+            # "file_size_range": validations.check_file_size_range,
+            # "file_row_count_range": validations.check_file_row_count_range,
+            # "file_value_separator": validations.check_file_value_separator,
+            # "file_has_header": validations.check_file_has_header,
+            # "file_header_column_names": validations.check_file_header_column_names,
+            # "file_column_datatypes": validations.check_file_column_datatypes,
+            # "column_allow_numeric_value_range": validations.check_column_allow_numeric_value_range,
+            # "column_allow_fixed_value_list": validations.check_column_allow_fixed_value_list,
+            # "column_allow_regex": validations.check_column_allow_regex,
+            # "column_allow_substring": validations.check_column_allow_substring,
+            # "column_allow_fixed_value": validations.check_column_allow_fixed_value,
+        }
+
+        for func_name, func in attribute_func_map.items():
+            if func_name == attribute:
+                return func(**kwargs)
+        else:
+            return None
+
     def _get_config(self):
         if isinstance(self.config, dict):
             return SimpleNamespace(**self.config)
         else:
-            raise
+            raise Exception
 
     def _get_high_severity_validations(self):
         return {k: v for k, v in self.config.get('high_severity_validations').items()}
@@ -76,82 +101,21 @@ class Validate:
     def _get_validation(self, validation_rule):
         return {k: v for k, v in self._get_all_severity_validations().items() if k == validation_rule}
 
-    def _instantiate_validation(self):
-        for k, v in self._get_all_severity_validations().items():
-            type(k, v)
+    def _file_read_generator(self, file):
+        for row in open(file, encoding="utf8", mode='r'):
+            yield row
 
-    def read_file(self):
-        data = pd.read_csv("test1.csv",
-                           dtype=self.config.get('low_severity_validations').get('column_datatypes'),
-                           sep=self.config.get('low_severity_validations').get('file_value_separator'),
-                           header=1,
-                           engine="c")
-
-        print(data)
-
-    def method_caller(self, attribute):
-        """
-        method to invoke all checks
-        """
-
-        attribute_func_map = {
-            "file_extension": self.check_file_extension,
-            "filemask": self.check_filemask,
-            "no_of_columns": self.check_no_of_columns,
-            "no_of_rows": self.check_no_of_rows,
-            "row_range": self.check_row_range,
-            "column_range": self.check_column_range,
-            "duplicate_values": self.check_dups_values_allowed,
-            "duplicate_rows": self.check_dups_rows_allowed,
-            "column_dtypes": self.check_column_dtypes,
-            "column_regex": self.check_column_regex,
-            "null_values_forbidden_blanket_ban": self.null_val_forbid_blank_ban,
-            "null_values_forbidden_columnar": self.null_values_forbid_column,
-            "column_value_range": self.check_column_value_range,
-            "sql_column_lookup": self.check_sql_column_lookup,
-            "customer_check": self.check_ssn_person_svc
-        }
-
-        if attribute in attribute_func_map.keys():
-            return attribute_func_map[attribute]
-        else:
-            return None
-
-    def check_file_extension(self, file_extension) -> bool:
-        """
-        checks the file extension matches value in validation_schema
-        """
-        # rfind() returns -1 if it doesn't find the character it's looking for
-        if self.file.rfind('.') >= 0:
-            dot_index = self.file.rfind('.')
-            result = self.file[dot_index + 1:] == file_extension
-            return result
-        else:
-            result = file_extension == ''
-            return result
-
-    def check_filemask(self, filemask) -> bool:
-        """
-        checks the filename matches the regex pattern stipulated in the
-        validation_schema
-        """
-
-        file = os.path.split(self.file)[-1]
-        dot_index = file.rfind('.')
-        filename = file[:dot_index]
-        result = re.match(filemask, filename)
-
-        # Check if regexp didn't match anything
-        if result is None:
-            return False
-
-        return result and result.span()[1] == len(filename)
+files_list = ["test1.csv"]
 
 vobj = Validate(config)
-Validate.read_file(vobj)
-print(Validate._get_high_severity_validations(vobj))
-print(Validate._get_low_severity_validations(vobj))
-print(Validate._get_all_severity_validations(vobj))
-print(Validate._get_validation(vobj, validation_rule="file_has_header"))
-print(Validate._instantiate_validation(vobj))
-Validate.column_validation_rules()
+for f in files_list:
+    for l in vobj._file_read_generator(f):
+        print(l)
+
+#Validate.read_file(vobj)
+# print(Validate._get_high_severity_validations(vobj))
+# print(Validate._get_low_severity_validations(vobj))
+# print(Validate._get_all_severity_validations(vobj))
+#print(Validate._get_validation(vobj, validation_rule="file_has_header"))
+print(Validate._function_caller(vobj, 'file_extension', **{'arg1': "csv"}))
+print(Validate._function_caller(vobj, 'file_mask', **{'arg1': "xqw"}))
