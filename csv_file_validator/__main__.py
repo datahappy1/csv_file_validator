@@ -11,6 +11,15 @@ else:
 
 # basicdtypes  float, int, bool, timedelta64[ns] and datetime64[ns], string
 # https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#basics-dtypes
+
+type_to_pd_dtype = {
+    "string": "object",
+    "integer": "int64",
+    "float": "float64",
+    "bool": "bool",
+    "datetime": "datetime64",
+}
+
 # config
 config = {
     'high_severity_validations': {
@@ -69,7 +78,7 @@ class Validate:
 
     def _instantiate_validation(self):
         for k, v in self._get_all_severity_validations().items():
-            setattr(self, k, v)
+            type(k, v)
 
     def read_file(self):
         data = pd.read_csv("test1.csv",
@@ -80,6 +89,63 @@ class Validate:
 
         print(data)
 
+    def method_caller(self, attribute):
+        """
+        method to invoke all checks
+        """
+
+        attribute_func_map = {
+            "file_extension": self.check_file_extension,
+            "filemask": self.check_filemask,
+            "no_of_columns": self.check_no_of_columns,
+            "no_of_rows": self.check_no_of_rows,
+            "row_range": self.check_row_range,
+            "column_range": self.check_column_range,
+            "duplicate_values": self.check_dups_values_allowed,
+            "duplicate_rows": self.check_dups_rows_allowed,
+            "column_dtypes": self.check_column_dtypes,
+            "column_regex": self.check_column_regex,
+            "null_values_forbidden_blanket_ban": self.null_val_forbid_blank_ban,
+            "null_values_forbidden_columnar": self.null_values_forbid_column,
+            "column_value_range": self.check_column_value_range,
+            "sql_column_lookup": self.check_sql_column_lookup,
+            "customer_check": self.check_ssn_person_svc
+        }
+
+        if attribute in attribute_func_map.keys():
+            return attribute_func_map[attribute]
+        else:
+            return None
+
+    def check_file_extension(self, file_extension) -> bool:
+        """
+        checks the file extension matches value in validation_schema
+        """
+        # rfind() returns -1 if it doesn't find the character it's looking for
+        if self.file.rfind('.') >= 0:
+            dot_index = self.file.rfind('.')
+            result = self.file[dot_index + 1:] == file_extension
+            return result
+        else:
+            result = file_extension == ''
+            return result
+
+    def check_filemask(self, filemask) -> bool:
+        """
+        checks the filename matches the regex pattern stipulated in the
+        validation_schema
+        """
+
+        file = os.path.split(self.file)[-1]
+        dot_index = file.rfind('.')
+        filename = file[:dot_index]
+        result = re.match(filemask, filename)
+
+        # Check if regexp didn't match anything
+        if result is None:
+            return False
+
+        return result and result.span()[1] == len(filename)
 
 vobj = Validate(config)
 Validate.read_file(vobj)
@@ -88,4 +154,4 @@ print(Validate._get_low_severity_validations(vobj))
 print(Validate._get_all_severity_validations(vobj))
 print(Validate._get_validation(vobj, validation_rule="file_has_header"))
 print(Validate._instantiate_validation(vobj))
-Validate.allow_numeric_range_value()
+Validate.column_validation_rules()
