@@ -82,4 +82,5 @@ def check_filemask(**kwargs) -> bool:
     #     return False
     # else:
     #     return True
+    print(kwargs)
     return kwargs.items()

@@ -30,8 +30,8 @@ class Validate:
     @staticmethod
     def function_caller(attribute, **kwargs):
         attribute_func_map = {
+            "file_name_file_mask": validations.check_filemask,
             "file_extension": validations.check_file_extension,
-            "file_mask": validations.check_filemask,
             # "file_size_range": validations.check_file_size_range,
             # "file_row_count_range": validations.check_file_row_count_range,
             # "file_value_separator": validations.check_file_value_separator,
@@ -75,10 +75,14 @@ class Validate:
         return {k: v for k, v in self._get_all_validations().items() if k == validation_rule}
 
     def validate_file(self, file):
-        pass
+        file_level_validations = self._get_file_level_validations()
+        for validation, value in file_level_validations.items():
+            self.function_caller(validation, **{'file': file, 'arg1': value})
 
     def validate_line(self, line):
-        pass
+        column_level_validations = self._get_column_level_validations()
+        for validation, value in column_level_validations.items():
+            self.function_caller(validation, **{'line': line, 'arg1': value})
 
 
 files_list = ["SalesJan2009.csv"]
@@ -89,8 +93,8 @@ for file in files_list:
     for line in vobj.file_read_generator(file):
         vobj.validate_line(line)
 
-print(Validate._get_file_level_validations(vobj))
-print(Validate._get_column_level_validations(vobj))
-print(Validate._get_all_validations(vobj))
-print(Validate.function_caller('file_extension', **{'arg1': "csv"}))
-print(Validate.function_caller('file_mask', **{'arg1': "xqw"}))
+# print(Validate._get_file_level_validations(vobj))
+# print(Validate._get_column_level_validations(vobj))
+# print(Validate._get_all_validations(vobj))
+# print(Validate.function_caller('file_extension', **{'arg1': "csv"}))
+# print(Validate.function_caller('file_mask', **{'arg1': "xqw"}))
