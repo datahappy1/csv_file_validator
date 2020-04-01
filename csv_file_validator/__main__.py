@@ -1,66 +1,34 @@
-import platform
-import os, re
-from types import SimpleNamespace, FunctionType
 from csv_file_validator import validations
 
-pf = platform.system()
-
-if pf == 'linux':
-    import modin.pandas as pd
-else:
-    import pandas as pd
-
-# basicdtypes  float, int, bool, timedelta64[ns] and datetime64[ns], string
-# https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#basics-dtypes
-
-type_to_pd_dtype = {
-    "string": "object",
-    "integer": "int64",
-    "float": "float64",
-    "bool": "bool",
-    "datetime": "datetime64",
-}
-
-# config
 config = {
-    'high_severity_validations': {
-        'file_name_filemask': 'test*',
-        'file_extension': 'csv',
-        'file_size_range': [0, 1],
-        'file_row_count_range': [0, 50],
-    },
-    'low_severity_validations': {
-        'file_value_separator': ',',
-        'file_has_header': True,
-        'file_header_column_names': ['col1', 'col2', 'col3'],
-        'column_datatypes': {
-            'col1': 'str',
-            'col2': 'str',
-            'col3': 'str'
+    'file_name_file_mask': 'test*',
+    'file_extension': 'csv',
+    'file_size_range': [0, 1],
+    'file_row_count_range': [0, 50],
+    'file_value_separator': ',',
+    'file_has_header': True,
+    'file_header_column_names': ['col1', 'col2', 'col3'],
+    'column_validation_rules': {
+        'col1': {
+            'allow_numeric_value_range': [0, 100],
+            'allow_data_type': 'str',
         },
-        'column_validation_rules': {
-            'col1': {
-                'allow_numeric_value_range': [0, 100]
-            },
-            'col2': {
-                'allow_fixed_value_list': ['yyy', 'www'],
-                'allow_regex': '$#%@%^@',
-            },
-            'col3': {
-                'allow_substring': 'xxzerw',
-                'allow_fixed_value': 'xxx'
-            }
+        'col2': {
+            'allow_fixed_value_list': ['yyy', 'www'],
+            'allow_regex': '$#%@%^@',
+        },
+        'col3': {
+            'allow_substring': 'xxzerw',
+            'allow_fixed_value': 'xxx',
+            'allow_data_type': 'str'
         }
     }
 }
 
 
 class Validate:
-    def __init__(self, config):
-        self.config = config
-
-
-    def _function_caller(self, attribute, **kwargs):
+    @staticmethod
+    def function_caller(attribute, **kwargs):
         attribute_func_map = {
             "file_extension": validations.check_file_extension,
             "file_mask": validations.check_filemask,
@@ -83,39 +51,46 @@ class Validate:
         else:
             return None
 
-    def _get_config(self):
-        if isinstance(self.config, dict):
-            return SimpleNamespace(**self.config)
-        else:
-            raise Exception
-
-    def _get_high_severity_validations(self):
-        return {k: v for k, v in self.config.get('high_severity_validations').items()}
-
-    def _get_low_severity_validations(self):
-        return {k: v for k, v in self.config.get('low_severity_validations').items()}
-
-    def _get_all_severity_validations(self):
-        return {**self._get_high_severity_validations(), **self._get_low_severity_validations()}
-
-    def _get_validation(self, validation_rule):
-        return {k: v for k, v in self._get_all_severity_validations().items() if k == validation_rule}
-
-    def _file_read_generator(self, file):
+    @staticmethod
+    def file_read_generator(file):
         for row in open(file, encoding="utf8", mode='r'):
             yield row
 
-files_list = ["test1.csv"]
+    def __init__(self, config):
+        self.config = config
+
+    def _validate_config_file(self):
+        pass
+
+    def _get_file_level_validations(self):
+        return {k: v for k, v in self.config.items() if k.startswith('file')}
+
+    def _get_column_level_validations(self):
+        return {k: v for k, v in self.config.get('column_validation_rules').items()}
+
+    def _get_all_validations(self):
+        return {**self._get_file_level_validations(), **self._get_column_level_validations()}
+
+    def _get_validation(self, validation_rule):
+        return {k: v for k, v in self._get_all_validations().items() if k == validation_rule}
+
+    def validate_file(self, file):
+        pass
+
+    def validate_line(self, line):
+        pass
+
+
+files_list = ["SalesJan2009.csv"]
 
 vobj = Validate(config)
-for f in files_list:
-    for l in vobj._file_read_generator(f):
-        print(l)
+for file in files_list:
+    vobj.validate_file(file)
+    for line in vobj.file_read_generator(file):
+        vobj.validate_line(line)
 
-#Validate.read_file(vobj)
-# print(Validate._get_high_severity_validations(vobj))
-# print(Validate._get_low_severity_validations(vobj))
-# print(Validate._get_all_severity_validations(vobj))
-#print(Validate._get_validation(vobj, validation_rule="file_has_header"))
-print(Validate._function_caller(vobj, 'file_extension', **{'arg1': "csv"}))
-print(Validate._function_caller(vobj, 'file_mask', **{'arg1': "xqw"}))
+print(Validate._get_file_level_validations(vobj))
+print(Validate._get_column_level_validations(vobj))
+print(Validate._get_all_validations(vobj))
+print(Validate.function_caller('file_extension', **{'arg1': "csv"}))
+print(Validate.function_caller('file_mask', **{'arg1': "xqw"}))
