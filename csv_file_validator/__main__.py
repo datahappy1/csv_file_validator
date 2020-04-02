@@ -19,7 +19,7 @@ config = {
     'column_validation_rules': {
         'Transaction_date': {
             'allow_numeric_value_range': [0, 100],
-            'allow_data_type': 'str',
+            'allow_data_type': str,
         },
         'Country': {
             'allow_fixed_value_list': ['yyy', 'www'],
@@ -28,7 +28,7 @@ config = {
         'Price': {
             'allow_substring': 'xxzerw',
             'allow_fixed_value': 'xxx',
-            'allow_data_type': 'str'
+            'allow_data_type': str
         }
     }
 }
@@ -89,10 +89,12 @@ class Validate:
             self.function_caller(validation, **{'file': file, 'arg1': value})
 
     def validate_line(self, line):
-        column_level_validations = self._get_column_level_validations(column='x')
-        for column, validations in column_level_validations.items():
-            for validation, value in validations.items():
-                self.function_caller(validation, **{'column': column, 'arg1': value})
+        for k, v in line.items():
+
+            column_level_validations = self._get_column_level_validations(column=k)
+            for column, validations in column_level_validations.items():
+                for validation, value in validations.items():
+                    self.function_caller(validation, **{'column': column, 'arg1': value, 'arg2': v})
 
 
 files_list = ["SalesJan2009.csv"]

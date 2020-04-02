@@ -71,4 +71,8 @@ def check_file_header_column_names(**kwargs):
         logger.warning('check_file_header_column_names failed')
 
 def check_column_allow_data_type(**kwargs):
-    if isinstance(kwargs.get(''))
+    if isinstance(kwargs.get('arg2'), kwargs.get('arg1')):
+        logger.info('check_column_allow_data_type passed')
+    else:
+        logger.warning('check_column_allow_data_type failed')
+
