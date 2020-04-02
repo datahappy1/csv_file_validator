@@ -1,5 +1,6 @@
 import logging
 import csv
+import datetime
 from csv_file_validator import validations
 
 # logger = logging.Logger(name=__name__)
@@ -18,17 +19,18 @@ config = {
     },
     'column_validation_rules': {
         'Transaction_date': {
-            'allow_numeric_value_range': [0, 100],
-            'allow_data_type': str,
+            'allow_data_type': 'datetime',
         },
         'Country': {
             'allow_fixed_value_list': ['yyy', 'www'],
             'allow_regex': '$#%@%^@',
+            'allow_data_type': 'str'
         },
         'Price': {
+            'allow_numeric_value_range': [0, 100000],
             'allow_substring': 'xxzerw',
             'allow_fixed_value': 'xxx',
-            'allow_data_type': str
+            'allow_data_type': 'int'
         }
     }
 }
@@ -44,11 +46,11 @@ class Validate:
             "file_row_count_range": validations.check_file_row_count_range,
             "file_header_column_names": validations.check_file_header_column_names,
             "allow_data_type": validations.check_column_allow_data_type,
-            # "column_allow_numeric_value_range": validations.check_column_allow_numeric_value_range,
-            # "column_allow_fixed_value_list": validations.check_column_allow_fixed_value_list,
-            # "column_allow_regex": validations.check_column_allow_regex,
-            # "column_allow_substring": validations.check_column_allow_substring,
-            # "column_allow_fixed_value": validations.check_column_allow_fixed_value,
+            "allow_numeric_value_range": validations.check_column_allow_numeric_value_range,
+            "allow_fixed_value_list": validations.check_column_allow_fixed_value_list,
+            "allow_regex": validations.check_column_allow_regex,
+            "allow_substring": validations.check_column_allow_substring,
+            "allow_fixed_value": validations.check_column_allow_fixed_value,
         }
 
         for func_name, func in attribute_func_map.items():
@@ -62,9 +64,9 @@ class Validate:
 
     def file_read_generator(self, file):
         self._get_file_header()
-
         for row in open(file, mode='r', encoding='utf8'):
-            yield dict(zip(self.file_header,row.split(self._get_file_metadata_value('file_value_separator'))))
+            if ','.join(self.file_header) != row:
+                yield dict(zip(self.file_header, row.split(self._get_file_metadata_value('file_value_separator'))))
 
     def __init__(self, config):
         self.config = config
@@ -78,7 +80,7 @@ class Validate:
         return {k: v for k, v in self.config.get('file_validation_rules').items()}
 
     def _get_column_level_validations(self, column):
-        return {k: v for k, v in self.config.get('column_validation_rules').items()}
+        return {k: v for k, v in self.config.get('column_validation_rules').items() if k==column}
 
     def _get_file_metadata_value(self, metavalue):
         return [v for k, v in self.config.get('file_metadata').items() if k == metavalue][0]
@@ -90,7 +92,6 @@ class Validate:
 
     def validate_line(self, line):
         for k, v in line.items():
-
             column_level_validations = self._get_column_level_validations(column=k)
             for column, validations in column_level_validations.items():
                 for validation, value in validations.items():
