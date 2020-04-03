@@ -1,21 +1,25 @@
-import os, re
+import os
+import re
 import logging
 from dateutil import parser
+from functools import wraps
+
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def allow_fixed_value():
-    pass
-
-
-def allow_regex():
-    pass
-
-
-def allow_substring():
-    pass
+# def my_decorator(f):
+#      @wraps(f)
+#      def wrapper(*args, **kwds):
+#          print('Calling decorated function')
+#          return f(*args, **kwds)
+#      return wrapper
+#
+# @my_decorator
+# def example():
+#     """Docstring"""
+#     print('Called example function')
 
 
 def check_file_extension(**kwargs):
