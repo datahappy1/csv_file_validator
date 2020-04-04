@@ -1,133 +1,127 @@
 import os
 import re
+import sys
 import logging
 from dateutil import parser
-from functools import wraps
 
-
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+currentFuncName = lambda n=0: sys._getframe(n + 1).f_code.co_name
 
 
-# def my_decorator(f):
-#      @wraps(f)
-#      def wrapper(*args, **kwds):
-#          print('Calling decorated function')
-#          return f(*args, **kwds)
-#      return wrapper
-#
-# @my_decorator
-# def example():
-#     """Docstring"""
-#     print('Called example function')
+def _get_logged_error(func_name, type, **kwargs):
+    if type == "file_level":
+        logger.error(f'{func_name} - failed on : '
+                     f'validation name: {kwargs.get("validation_name")} , '
+                     f'validation value: {kwargs.get("validation_value")} ')
+
+    elif type == "column_level":
+        logger.error(f'{func_name} - row {kwargs.get("row_number")} failed on : '
+                     f'column: {kwargs.get("column")} , '
+                     f'column value: {kwargs.get("column_value")} , '
+                     f'validation value: {kwargs.get("validation_value")} ')
+    else:
+        raise NotImplementedError
 
 
 def check_file_extension(**kwargs):
-    if os.path.splitext(kwargs.get('file'))[1][1:] == kwargs.get('arg1'):
-        logger.info('check_file_extension passed')
+    if os.path.splitext(kwargs.get('file_name'))[1][1:] == kwargs.get('validation_value'):
+        pass
     else:
-        logger.warning('check_file_extension failed')
+        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
 
 
 def check_filemask(**kwargs):
-    file = os.path.split(kwargs.get('file'))[-1]
+    file = os.path.split(kwargs.get('file_name'))[-1]
     dot_index = file.rfind('.')
     filename = file[:dot_index]
+    result = re.match(kwargs.get('validation_value'), filename)
 
-    result = re.match(kwargs.get('arg1'), filename)
-
-    # Check if regexp didn't match anything
     if result:
-        logger.info('check_filemask passed')
+        pass
     else:
-        logger.warning('check_filemask failed')
+        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
 
 
 def check_file_size_range(**kwargs):
-    fsize = os.path.getsize(kwargs.get('file')) / 1024 / 1024
+    fsize = os.path.getsize(kwargs.get('file_name')) / 1024 / 1024
 
-    if fsize >= kwargs.get('arg1')[0] and fsize <= kwargs.get('arg1')[1]:
-        logger.info('check_file_size_range passed')
+    if fsize >= kwargs.get('validation_value')[0] and fsize <= kwargs.get('validation_value')[1]:
+        pass
     else:
-        logger.warning('check_file_size_range failed')
+        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
 
 
 def check_file_row_count_range(**kwargs):
-    #TODO use the generator in __main__
-    num_lines = sum(1 for line in open(kwargs.get('file')))
-
-    if num_lines >= kwargs.get('arg1')[0] and num_lines <= kwargs.get('arg1')[1]:
-        logger.info('check_file_row_count_range passed')
+    if kwargs.get('validation_value')[1] >= kwargs.get('file_row_count') >= kwargs.get('validation_value')[0]:
+        pass
     else:
-        logger.warning('check_file_row_count_range failed')
+        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
 
 
 def check_file_header_column_names(**kwargs):
-    #TODO use the generator in __main__
-    first_line = [line for line in open(kwargs.get('file'))][0].split(',')
+    first_line = kwargs.get('file_header')
 
-    if first_line == kwargs.get('arg1'):
-        logger.info('check_file_header_column_names passed')
+    if first_line == kwargs.get('file_header'):
+        pass
     else:
-        logger.warning('check_file_header_column_names failed')
+        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
 
 
 def check_column_allow_data_type(**kwargs):
     try:
-        if kwargs.get("arg1") == "str":
-            str(kwargs.get("arg2"))
-            pass
-        elif kwargs.get("arg1") == "int":
-            int(kwargs.get("arg2"))
-            pass
-        elif kwargs.get("arg1") == "datetime":
-            parser.parse(kwargs.get("arg2"))
-            pass
+        if kwargs.get("validation_value") == "str":
+            str(kwargs.get("column_value"))
+        elif kwargs.get("validation_value") == "int":
+            int(kwargs.get("column_value"))
+        elif kwargs.get("validation_value") == "float":
+            float(kwargs.get("column_value"))
+        elif kwargs.get("validation_value") == "datetime":
+            parser.parse(kwargs.get("column_value"))
         else:
             raise NotImplementedError
-    except (TypeError, ValueError) as e:
-        logger.info(f'check_column_allow_data_type failed {kwargs.get("arg1")} - {kwargs.get("arg2")} - {type(kwargs.get("arg2"))} - {e}')
+    except (TypeError, ValueError):
+        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
 
 
 def check_column_allow_numeric_value_range(**kwargs):
     try:
-        int(kwargs.get("arg2"))
+        int(kwargs.get("column_value"))
     except ValueError:
-        logger.warning(f'check_column_allow_numeric_value_range failed on casting {kwargs.get("arg2")} to int before validation start')
+        logger.error(f'{__name__} row {kwargs.get("idx")} failed with {kwargs}')
         return
 
-    if kwargs.get("arg1")[0] <= int(kwargs.get("arg2")) <= kwargs.get("arg1")[1]:
-        logger.info('check_column_allow_numeric_value_range passed')
+    if kwargs.get("validation_value")[0] <= int(kwargs.get("column_value")) <= kwargs.get("validation_value")[1]:
+        pass
     else:
-        logger.warning('check_column_allow_numeric_value_range failed')
+        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
 
 
 def check_column_allow_fixed_value_list(**kwargs):
-    if kwargs.get("arg2") in [x for x in kwargs.get("arg1")]:
-        logger.info('check_column_allow_fixed_value_list passed')
+    if kwargs.get("column_value") in [x for x in kwargs.get("validation_value")]:
+        pass
     else:
-        logger.warning('check_column_allow_fixed_value_list failed')
+        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
 
 
 def check_column_allow_fixed_value(**kwargs):
-    if kwargs.get("arg2") == kwargs.get("arg1"):
-        logger.info('check_column_allow_fixed_value passed')
+    if kwargs.get("column_value") == kwargs.get("validation_value"):
+        pass
     else:
-        logger.warning('check_column_allow_fixed_value failed')
+        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
 
 
 def check_column_allow_substring(**kwargs):
-    if kwargs.get("arg2") in kwargs.get("arg1"):
-        logger.info('check_column_allow_substring passed')
+    if kwargs.get("column_value") in kwargs.get("validation_value"):
+        pass
     else:
-        logger.warning('check_column_allow_substring failed')
+        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
 
 
 def check_column_allow_regex(**kwargs):
-    result = re.match(kwargs.get('arg1'), kwargs.get('arg2'))
+    result = re.match(kwargs.get('validation_value'), kwargs.get('column_value'))
 
     # Check if regexp didn't match anything
     if result:
-        logger.info('check_column_allow_regex passed')
+        pass
     else:
-        logger.warning('check_column_allow_regex failed')
+        _get_logged_error(currentFuncName(), type="column_level", **kwargs)

@@ -1,9 +1,22 @@
+import logging
+from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
 
+logger = logging.getLogger(__name__)
 
-class Validate:
+
+class SetupValidation:
+    """
+    Setup Validation class
+    """
     @staticmethod
-    def function_caller(attribute, **kwargs):
+    def function_caller(attribute, **kwargs) -> [classmethod, None]:
+        """
+        mapping method between config rules and validation functions
+        :param attribute:
+        :param kwargs:
+        :return:
+        """
         attribute_func_map = {
             "file_name_file_mask": validation_funcs.check_filemask,
             "file_extension": validation_funcs.check_file_extension,
@@ -27,51 +40,136 @@ class Validate:
     def __init__(self, config):
         self.config = config
 
-    #TODO
-    def _validate_config_file(self):
+    def _validate_config_file(self) -> Union[Exception, bool]:
+        """
+        config file validation method
+        :return:
+        """
         if not isinstance(self.config, dict):
-            raise Exception
+            raise Exception('config file not dict')
 
-    def _get_file_level_validations(self):
-        print(type(self.config))
-        print(self.config)
+        if not self.config.get('file_metadata'):
+            raise Exception('config file missing metadata object')
+
+        if not self.config.get('file_validation_rules') and \
+                not self.config.get('column_validation_rules'):
+            raise Exception('config file missing file_validation_rules object and '
+                            'column_validation_rules object')
+        return True
+
+    def get_validated_config(self) -> dict:
+        """
+        method for returning a validated configuration
+        :return:
+        """
+        self._validate_config_file()
+        return self.config
+
+    def _get_config_file_metadata_items(self) -> dict:
+        """
+        method for returning file_metadata configuration items
+        :return:
+        """
+        return self.config.get('file_metadata').items()
+
+    def _get_config_file_metadata_value(self, metadata_value) -> Union[str, list]:
+        """
+        method for returning file_metadata configuration item
+        :param metadata_value:
+        :return:
+        """
+        return [v for k, v in self._get_config_file_metadata_items() if k == metadata_value][0]
+
+    def get_config_file_validation_rules_items(self) -> dict:
+        """
+        method for returning file validation rules configuration items
+        :return:
+        """
         return {k: v for k, v in self.config.get('file_validation_rules').items()}
 
-    def _get_column_level_validations(self, column):
-        return {k: v for k, v in self.config.get('column_validation_rules').items() if k==column}
+    def get_config_column_validation_rules_items(self, column) -> dict:
+        """
+        method for returning column validation rules configuration items
+        :param column:
+        :return:
+        """
+        return {k: v for k, v in self.config.get('column_validation_rules').items() if k == column}
 
-#https://pybit.es/python-subclasses.html
-class ValidateFile(Validate):
-    def __init__(self, file):
-        super().__init__(file)
-        self.file = file
 
-    def _get_file_header(self):
-        self.file_header = open(self.file, mode='r', encoding='utf8').readline().split(self._get_file_metadata_value('file_value_separator'))
+class ValidateFile(SetupValidation):
+    """
+    Validate file class
+    """
+    def __init__(self, config, file):
+        super().__init__(config)
+        self.file_name = file
+        self.file_handler = open(file, mode='r', encoding='utf8')
+        self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
+        self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
 
-    def file_read_generator(self):
-        self._get_file_header()
-        for row in open(self.file, mode='r', encoding='utf8'):
-            if ','.join(self.file_header) != row:
-                yield dict(zip(self.file_header, row.split(self._get_file_metadata_value('file_value_separator'))))
+        if self._get_config_file_metadata_value('file_has_header'):
+            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator).\
+                split(self.file_value_separator)
 
-    def _get_file_metadata_value(self, metavalue):
-        return [v for k, v in self.config.get('file_metadata').items() if k == metavalue][0]
+        self.file_row_count = sum(1 for line in self.file_handler)
+
+        # seek the file back to the file beginning after counting the lines in the opened file handler
+        self.file_handler.seek(0)
+
+    def file_read_generator(self) -> dict:
+        """
+        file reading generator method
+        :return:
+        """
+        for _row in self.file_handler:
+            row = _row.rstrip(self.file_row_terminator)
+            if self.file_header:
+                # if file contains header, yield {(column name 1, value),(column name 2),( value),..}
+                if self.file_value_separator.join(self.file_header) != row:
+                    yield dict(zip(self.file_header, row.split(self.file_value_separator)))
+
+            else:
+                # if file is without header, yield {(column index, value), ()...}
+                yield dict(zip([x for x in range(0, len(row.split(self.file_value_separator)))],
+                               row.split(self.file_value_separator)))
+
+    def close_file_handler(self):
+        """
+        method for closing the file handler after validations finished
+        :return:
+        """
+        self.file_handler.close()
 
     def validate_file(self):
-        file_level_validations = self._get_file_level_validations()
-        for validation, value in file_level_validations.items():
-            self.function_caller(validation, **{'file': self.file, 'arg1': value})
+        """
+        method for validating a file, for every file level validation, call
+        the mapped validation function and process it
+        :return:
+        """
+        file_level_validations = self.get_config_file_validation_rules_items()
+        for validation_name, validation_value in file_level_validations.items():
+            self.function_caller(validation_name,
+                                 **{'file_name': self.file_name,
+                                    'file_handler': self.file_handler,
+                                    'file_header': self.file_header,
+                                    'file_row_count': self.file_row_count,
+                                    'validation_value': validation_value}
+                                 )
 
-
-# class ValidateLine(Validate):
-#     def __init__(self, line, config):
-#         super().__init__(config)
-#         self.line = line
-#
-#     def validate_line(self):
-#         for k, v in self.line.items():
-#             column_level_validations = self._get_column_level_validations(column=k)
-#             for column, validations in column_level_validations.items():
-#                 for validation, value in validations.items():
-#                     self.function_caller(validation, **{'column': column, 'arg1': value, 'arg2': v})
+    def validate_line(self, line, idx):
+        """
+        method for validating a line in a file, for every column level validation, call
+        the mapped validation function and process it
+        :param line:
+        :param idx:
+        :return:
+        """
+        for k, v in line.items():
+            column_level_validations = self.get_config_column_validation_rules_items(column=k)
+            for column, validations in column_level_validations.items():
+                for validation, value in validations.items():
+                    self.function_caller(validation,
+                                         **{'column': column,
+                                            'validation_value': value,
+                                            'column_value': v,
+                                            'row_number': idx})
