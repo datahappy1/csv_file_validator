@@ -9,6 +9,7 @@ class SetupValidation:
     """
     Setup Validation class
     """
+
     @staticmethod
     def function_caller(attribute, **kwargs) -> [classmethod, None]:
         """
@@ -18,7 +19,7 @@ class SetupValidation:
         :return:
         """
         attribute_func_map = {
-            "file_name_file_mask": validation_funcs.check_filemask,
+            "file_name_file_mask": validation_funcs.check_file_mask,
             "file_extension": validation_funcs.check_file_extension,
             "file_size_range": validation_funcs.check_file_size_range,
             "file_row_count_range": validation_funcs.check_file_row_count_range,
@@ -100,6 +101,7 @@ class ValidateFile(SetupValidation):
     """
     Validate file class
     """
+
     def __init__(self, config, file):
         super().__init__(config)
         self.file_name = file
@@ -107,8 +109,9 @@ class ValidateFile(SetupValidation):
         self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
 
+        self.file_header = None
         if self._get_config_file_metadata_value('file_has_header'):
-            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator).\
+            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator). \
                 split(self.file_value_separator)
 
         self.file_row_count = sum(1 for line in self.file_handler)
@@ -124,12 +127,12 @@ class ValidateFile(SetupValidation):
         for _row in self.file_handler:
             row = _row.rstrip(self.file_row_terminator)
             if self.file_header:
-                # if file contains header, yield {(column name 1, value),(column name 2),( value),..}
+                # if file contains header, yield {(column name 1, value),(column name 2),..}
                 if self.file_value_separator.join(self.file_header) != row:
                     yield dict(zip(self.file_header, row.split(self.file_value_separator)))
 
             else:
-                # if file is without header, yield {(column index, value), ()...}
+                # if file is without header, yield {(column index, value), (column index2, value),..}
                 yield dict(zip([x for x in range(0, len(row.split(self.file_value_separator)))],
                                row.split(self.file_value_separator)))
 
@@ -146,15 +149,18 @@ class ValidateFile(SetupValidation):
         the mapped validation function and process it
         :return:
         """
+        file_level_validations_fail_counter = 0
         file_level_validations = self.get_config_file_validation_rules_items()
-        for validation_name, validation_value in file_level_validations.items():
-            self.function_caller(validation_name,
-                                 **{'file_name': self.file_name,
-                                    'file_handler': self.file_handler,
-                                    'file_header': self.file_header,
-                                    'file_row_count': self.file_row_count,
-                                    'validation_value': validation_value}
-                                 )
+        file_level_validations_counter = len(file_level_validations)
+        for validation, validation_value in file_level_validations.items():
+            file_level_validations_fail_counter += self.function_caller(validation,
+                                                                        **{'file_name': self.file_name,
+                                                                           'file_handler': self.file_handler,
+                                                                           'file_header': self.file_header,
+                                                                           'file_row_count': self.file_row_count,
+                                                                           'validation_value': validation_value}
+                                                                        )
+        return file_level_validations_counter, file_level_validations_fail_counter
 
     def validate_line(self, line, idx):
         """
@@ -164,12 +170,17 @@ class ValidateFile(SetupValidation):
         :param idx:
         :return:
         """
+        column_level_validations_counter = 0
+        column_level_validations_fail_counter = 0
         for k, v in line.items():
             column_level_validations = self.get_config_column_validation_rules_items(column=k)
             for column, validations in column_level_validations.items():
+                column_level_validations_counter += 1
                 for validation, value in validations.items():
-                    self.function_caller(validation,
-                                         **{'column': column,
-                                            'validation_value': value,
-                                            'column_value': v,
-                                            'row_number': idx})
+                    column_level_validations_fail_counter += self.function_caller(validation,
+                                                                                  **{'column': column,
+                                                                                     'validation_value': value,
+                                                                                     'column_value': v,
+                                                                                     'row_number': idx}
+                                                                                  )
+        return column_level_validations_counter, column_level_validations_fail_counter

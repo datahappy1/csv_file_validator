@@ -8,66 +8,110 @@ logger = logging.getLogger(__name__)
 currentFuncName = lambda n=0: sys._getframe(n + 1).f_code.co_name
 
 
-def _get_logged_error(func_name, type, **kwargs):
-    if type == "file_level":
-        logger.error(f'{func_name} - failed on : '
-                     f'validation name: {kwargs.get("validation_name")} , '
-                     f'validation value: {kwargs.get("validation_value")} ')
-
-    elif type == "column_level":
-        logger.error(f'{func_name} - row {kwargs.get("row_number")} failed on : '
-                     f'column: {kwargs.get("column")} , '
-                     f'column value: {kwargs.get("column_value")} , '
-                     f'validation value: {kwargs.get("validation_value")} ')
-    else:
-        raise NotImplementedError
+def _get_logged_error(func_name, **kwargs) -> logger:
+    """
+    function responsible for handling the logging of the failed validations
+    :param func_name:
+    :param type:
+    :param kwargs:
+    :return:
+    """
+    logged_string = f'{func_name} - failed to meet this value : {kwargs.get("validation_value")}'
+    if kwargs.get("row_number"):
+        logged_string += f' - Row#: {kwargs["row_number"]}'
+    if kwargs.get("column"):
+        logged_string += f' - Column: {kwargs["column"]}'
+    if kwargs.get("column_value"):
+        logged_string += f' - Column value: {kwargs["column_value"]}'
+    if kwargs.get("Exception"):
+        logged_string += f' - Exception: {kwargs["Exception"]}'
+    logger.error(logged_string)
 
 
 def check_file_extension(**kwargs):
+    """
+    validation function checking the file extension is equal to the expected value
+    :param kwargs:
+    :return:
+    """
     if os.path.splitext(kwargs.get('file_name'))[1][1:] == kwargs.get('validation_value'):
-        pass
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
-def check_filemask(**kwargs):
+def check_file_mask(**kwargs):
+    """
+    validation function checking the file name file mask against a provided regex expr.
+    :param kwargs:
+    :return:
+    """
     file = os.path.split(kwargs.get('file_name'))[-1]
     dot_index = file.rfind('.')
     filename = file[:dot_index]
     result = re.match(kwargs.get('validation_value'), filename)
 
     if result:
-        pass
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_file_size_range(**kwargs):
-    fsize = os.path.getsize(kwargs.get('file_name')) / 1024 / 1024
+    """
+    validation function checking file size in MB is inside a numeric range
+    provided by the list of int values [min value, max value]
+    :param kwargs:
+    :return:
+    """
+    file_size = os.path.getsize(kwargs.get('file_name')) / 1024 / 1024
 
-    if fsize >= kwargs.get('validation_value')[0] and fsize <= kwargs.get('validation_value')[1]:
-        pass
+    if kwargs.get('validation_value')[1] \
+            >= file_size \
+            >= kwargs.get('validation_value')[0]:
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_file_row_count_range(**kwargs):
-    if kwargs.get('validation_value')[1] >= kwargs.get('file_row_count') >= kwargs.get('validation_value')[0]:
-        pass
+    """
+    validation function checking file row count is inside a numeric range
+    provided by the list of int values [min value, max value]
+    :param kwargs:
+    :return:
+    """
+    if kwargs.get('validation_value')[1] \
+            >= kwargs.get('file_row_count') \
+            >= kwargs.get('validation_value')[0]:
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_file_header_column_names(**kwargs):
-    first_line = kwargs.get('file_header')
-
-    if first_line == kwargs.get('file_header'):
-        pass
+    """
+    validation function checking file header row is equal to the expected header row
+    :param kwargs:
+    :return:
+    """
+    if kwargs.get('validation_value') == kwargs.get('file_header'):
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="file_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_column_allow_data_type(**kwargs):
+    """
+    validation function checking column value data type is equal to the expected data type
+    :param kwargs:
+    :return:
+    """
     try:
         if kwargs.get("validation_value") == "str":
             str(kwargs.get("column_value"))
@@ -79,49 +123,85 @@ def check_column_allow_data_type(**kwargs):
             parser.parse(kwargs.get("column_value"))
         else:
             raise NotImplementedError
-    except (TypeError, ValueError):
-        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
+        return 0
+
+    except (TypeError, ValueError) as TVE:
+        kwargs['Exception'] = TVE
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_column_allow_numeric_value_range(**kwargs):
+    """
+    validation function checking column value is inside a numeric range
+    provided by the list of int values [min value, max value]
+    :param kwargs:
+    :return:
+    """
     try:
-        int(kwargs.get("column_value"))
-    except ValueError:
-        logger.error(f'{__name__} row {kwargs.get("idx")} failed with {kwargs}')
-        return
+        if kwargs.get("validation_value")[0] \
+                <= int(kwargs.get("column_value")) \
+                <= kwargs.get("validation_value")[1]:
+            return 0
+        else:
+            _get_logged_error(currentFuncName(), **kwargs)
+            return 1
 
-    if kwargs.get("validation_value")[0] <= int(kwargs.get("column_value")) <= kwargs.get("validation_value")[1]:
-        pass
-    else:
-        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
+    except ValueError as VE:
+        kwargs['Exception'] = VE
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_column_allow_fixed_value_list(**kwargs):
+    """
+    validation function checking column value is in a expected list of values
+    :param kwargs:
+    :return:
+    """
     if kwargs.get("column_value") in [x for x in kwargs.get("validation_value")]:
-        pass
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_column_allow_fixed_value(**kwargs):
+    """
+    validation function checking column value is equal to a expected value
+    :param kwargs:
+    :return:
+    """
     if kwargs.get("column_value") == kwargs.get("validation_value"):
-        pass
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_column_allow_substring(**kwargs):
+    """
+    validation function checking column value is a substring of a provided string
+    :param kwargs:
+    :return:
+    """
     if kwargs.get("column_value") in kwargs.get("validation_value"):
-        pass
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
 
 
 def check_column_allow_regex(**kwargs):
+    """
+    validation function checking column value against a provided regex expr.
+    :param kwargs:
+    :return:
+    """
     result = re.match(kwargs.get('validation_value'), kwargs.get('column_value'))
 
-    # Check if regexp didn't match anything
     if result:
-        pass
+        return 0
     else:
-        _get_logged_error(currentFuncName(), type="column_level", **kwargs)
+        _get_logged_error(currentFuncName(), **kwargs)
+        return 1
