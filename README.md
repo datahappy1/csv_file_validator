@@ -54,7 +54,36 @@ Validation schema is a json file. Let's have a closer look at a example file.
    }
 }
 ```
-#### how to install & run:
+Mandatory objects in the validation schema json are:
+- `file_metadata` with these 3 keys: 
+```json
+   "file_metadata":{
+      "file_value_separator":",",
+      "file_row_terminator":"\n",
+      "file_has_header":true
+   },
+```
+- atleast one of the validation types: `file_validation_rules` and `column_validation_rules`
 
+##### Validation schema for a file with a header:
+
+
+##### Validation schema for a file without a header:
+
+#### how to install & run:
+- ideally create and activate a `virtual environment` or `pipenv`
+- install dependencies from `requirements.txt`
+- run using a command `python3 -xxxx`
 
 #### how to add custom validation rule:
+- prepare your function in `/csv_file_validator/validation_functions.py` module
+- this function has to return 0 on successful validation, 1 on a failed validation
+- add your function to the registered validation keys - functions mapping in `/csv_file_validator/validation.py` in the `function_caller` static method like:
+
+        attribute_func_map = {
+            "my_new_function": validation_funcs.my_new_function
+        }
+ 
+ - now you can use `my_new_function` in your config json file for validations
+ 
+ 

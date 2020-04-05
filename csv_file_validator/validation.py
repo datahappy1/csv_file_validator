@@ -5,6 +5,11 @@ from csv_file_validator import validation_functions as validation_funcs
 logger = logging.getLogger(__name__)
 
 
+class InvalidLineColumnCountException(Exception):
+    """
+    Invalid Line Column Count Exception custom exception type
+    """
+
 class SetupValidation:
     """
     Setup Validation class
@@ -115,7 +120,10 @@ class ValidateFile(SetupValidation):
                 split(self.file_value_separator)
 
         self.file_row_count = sum(1 for line in self.file_handler)
+        # seek the file back to the file beginning after counting the lines in the opened file handler
+        self.file_handler.seek(0)
 
+        self.first_row_control_length = len(self.file_handler.readline().split(self.file_value_separator))
         # seek the file back to the file beginning after counting the lines in the opened file handler
         self.file_handler.seek(0)
 
@@ -124,7 +132,11 @@ class ValidateFile(SetupValidation):
         file reading generator method
         :return:
         """
-        for _row in self.file_handler:
+        for _row_index, _row in enumerate(self.file_handler):
+
+            if len(_row.split(self.file_value_separator)) != self.first_row_control_length:
+                raise InvalidLineColumnCountException(f'row #:{_row_index} , row line: {_row}')
+
             row = _row.rstrip(self.file_row_terminator)
             if self.file_header:
                 # if file contains header, yield {(column name 1, value),(column name 2),..}
@@ -149,18 +161,18 @@ class ValidateFile(SetupValidation):
         the mapped validation function and process it
         :return:
         """
-        file_level_validations_fail_counter = 0
+        file_level_validations_fail_count = 0
         file_level_validations = self.get_config_file_validation_rules_items()
-        file_level_validations_counter = len(file_level_validations)
+        file_level_validations_count = len(file_level_validations)
         for validation, validation_value in file_level_validations.items():
-            file_level_validations_fail_counter += self.function_caller(validation,
-                                                                        **{'file_name': self.file_name,
-                                                                           'file_handler': self.file_handler,
-                                                                           'file_header': self.file_header,
-                                                                           'file_row_count': self.file_row_count,
-                                                                           'validation_value': validation_value}
-                                                                        )
-        return file_level_validations_counter, file_level_validations_fail_counter
+            file_level_validations_fail_count += self.function_caller(validation,
+                                                                      **{'file_name': self.file_name,
+                                                                         'file_handler': self.file_handler,
+                                                                         'file_header': self.file_header,
+                                                                         'file_row_count': self.file_row_count,
+                                                                         'validation_value': validation_value}
+                                                                      )
+        return file_level_validations_count, file_level_validations_fail_count
 
     def validate_line(self, line, idx):
         """
@@ -170,17 +182,17 @@ class ValidateFile(SetupValidation):
         :param idx:
         :return:
         """
-        column_level_validations_counter = 0
-        column_level_validations_fail_counter = 0
+        column_level_validations_count = 0
+        column_level_validations_fail_count = 0
         for k, v in line.items():
             column_level_validations = self.get_config_column_validation_rules_items(column=k)
             for column, validations in column_level_validations.items():
-                column_level_validations_counter += 1
+                column_level_validations_count += 1
                 for validation, value in validations.items():
-                    column_level_validations_fail_counter += self.function_caller(validation,
-                                                                                  **{'column': column,
-                                                                                     'validation_value': value,
-                                                                                     'column_value': v,
-                                                                                     'row_number': idx}
-                                                                                  )
-        return column_level_validations_counter, column_level_validations_fail_counter
+                    column_level_validations_fail_count += self.function_caller(validation,
+                                                                                **{'column': column,
+                                                                                   'validation_value': value,
+                                                                                   'column_value': v,
+                                                                                   'row_number': idx}
+                                                                                )
+        return column_level_validations_count, column_level_validations_fail_count
