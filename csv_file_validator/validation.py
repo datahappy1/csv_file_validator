@@ -5,10 +5,17 @@ from csv_file_validator import validation_functions as validation_funcs
 logger = logging.getLogger(__name__)
 
 
+class InvalidConfigException(Exception):
+    """
+    Invalid configuration file Exception custom exception type
+    """
+
+
 class InvalidLineColumnCountException(Exception):
     """
     Invalid Line Column Count Exception custom exception type
     """
+
 
 class SetupValidation:
     """
@@ -59,8 +66,8 @@ class SetupValidation:
 
         if not self.config.get('file_validation_rules') and \
                 not self.config.get('column_validation_rules'):
-            raise Exception('config file missing file_validation_rules object and '
-                            'column_validation_rules object')
+            raise InvalidConfigException('config file missing file_validation_rules object and '
+                                         'column_validation_rules object')
         return True
 
     def get_validated_config(self) -> dict:

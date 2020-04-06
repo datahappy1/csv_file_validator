@@ -1,6 +1,5 @@
 import logging
 import argparse
-import sys
 from csv_file_validator.validation import SetupValidation, ValidateFile, InvalidLineColumnCountException
 
 # set logging levels for main function console output
@@ -93,10 +92,32 @@ def validation_runner(file, config):
     ValidateFile.close_file_handler(validation_file_obj)
 
 
-def arg_parser():
-    pass
+def prepare_args():
+    """
+    function for preparation of the CLI arguments
+    :return:
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-fl', '--filelocation', type=str, required=True)
+    parser.add_argument('-config', '--configfile', type=str, required=True)
+    parsed = parser.parse_args()
+
+    file = parsed.filelocation
+    config = parsed.configfile
+
+    # verify the source file location is a valid file and folder
+
+    # load the config file to dict in case it's a filepath
+    # do the same if it's a json
+
+    return {'file': file,
+            'config': config}
 
 
 if __name__ == '__main__':
+
+    # prepared_args = prepare_args()
+    # main_result = main(**prepared_args)
+
     for file in FILEPATH:
         validation_runner(file, CONFIG)
