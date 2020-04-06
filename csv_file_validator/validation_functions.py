@@ -99,6 +99,8 @@ def check_file_header_column_names(**kwargs):
     :param kwargs:
     :return:
     """
+    # print(kwargs.get('validation_value'))
+    # print(kwargs.get('file_header'))
     if kwargs.get('validation_value') == kwargs.get('file_header'):
         return 0
     else:

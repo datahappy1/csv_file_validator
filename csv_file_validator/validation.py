@@ -1,4 +1,5 @@
 import logging
+import csv
 from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
 
@@ -139,21 +140,21 @@ class ValidateFile(SetupValidation):
         file reading generator method
         :return:
         """
-        for _row_index, _row in enumerate(self.file_handler):
+        reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=None)
+        for row_index, row in enumerate(reader):
+            # print(row_index)
+            # print(row)
+            if len(row) != self.first_row_control_length:
+                raise InvalidLineColumnCountException(f'row #:{row_index} , row line: {row}')
 
-            if len(_row.split(self.file_value_separator)) != self.first_row_control_length:
-                raise InvalidLineColumnCountException(f'row #:{_row_index} , row line: {_row}')
-
-            row = _row.rstrip(self.file_row_terminator)
             if self.file_header:
                 # if file contains header, yield {(column name 1, value),(column name 2),..}
                 if self.file_value_separator.join(self.file_header) != row:
-                    yield dict(zip(self.file_header, row.split(self.file_value_separator)))
+                    yield dict(zip(self.file_header, row))
 
             else:
                 # if file is without header, yield {(column index, value), (column index2, value),..}
-                yield dict(zip([x for x in range(0, len(row.split(self.file_value_separator)))],
-                               row.split(self.file_value_separator)))
+                yield dict(zip([x for x in range(0, len(row))], row))
 
     def close_file_handler(self):
         """
@@ -170,6 +171,7 @@ class ValidateFile(SetupValidation):
         """
         file_level_validations_fail_count = 0
         file_level_validations = self.get_config_file_validation_rules_items()
+        logger.info(f'found {len(file_level_validations)} validations')
         file_level_validations_count = len(file_level_validations)
         for validation, validation_value in file_level_validations.items():
             file_level_validations_fail_count += self.function_caller(validation,
