@@ -7,7 +7,7 @@ logging_level = logging.DEBUG
 logging.basicConfig(level=logging_level)
 logger = logging.getLogger(__name__)
 
-FILEPATH = ["SalesJan2009_no_header.csv"]
+FILEPATH = ["SalesJan2009_no_header.csv", "SalesJan2009_no_header_fixed.csv"]
 CONFIG = {
     'file_metadata': {
         'file_value_separator': ',',

@@ -135,6 +135,8 @@ class ValidateFile(SetupValidation):
         # seek the file back to the file beginning after counting the lines in the opened file handler
         self.file_handler.seek(0)
 
+        self.file_level_validations = self.get_config_file_validation_rules_items()
+
     def file_read_generator(self) -> dict:
         """
         file reading generator method
@@ -170,10 +172,10 @@ class ValidateFile(SetupValidation):
         :return:
         """
         file_level_validations_fail_count = 0
-        file_level_validations = self.get_config_file_validation_rules_items()
-        logger.info(f'found {len(file_level_validations)} validations')
-        file_level_validations_count = len(file_level_validations)
-        for validation, validation_value in file_level_validations.items():
+
+        logger.info(f'found {len(self.file_level_validations)} validations')
+        file_level_validations_count = len(self.file_level_validations)
+        for validation, validation_value in self.file_level_validations.items():
             file_level_validations_fail_count += self.function_caller(validation,
                                                                       **{'file_name': self.file_name,
                                                                          'file_handler': self.file_handler,
@@ -195,6 +197,7 @@ class ValidateFile(SetupValidation):
         column_level_validations_fail_count = 0
         for k, v in line.items():
             column_level_validations = self.get_config_column_validation_rules_items(column=k)
+
             for column, validations in column_level_validations.items():
                 column_level_validations_count += 1
                 for validation, value in validations.items():
