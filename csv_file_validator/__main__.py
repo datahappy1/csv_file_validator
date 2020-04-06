@@ -1,3 +1,5 @@
+import os
+import json
 import logging
 import argparse
 from csv_file_validator.validation import SetupValidation, ValidateFile, InvalidLineColumnCountException
@@ -6,52 +8,6 @@ from csv_file_validator.validation import SetupValidation, ValidateFile, Invalid
 logging_level = logging.DEBUG
 logging.basicConfig(level=logging_level)
 logger = logging.getLogger(__name__)
-
-FILEPATH = ["SalesJan2009_no_header.csv", "SalesJan2009_no_header_fixed.csv"]
-CONFIG = {
-    'file_metadata': {
-        'file_value_separator': ',',
-        'file_row_terminator': '\n',
-        'file_has_header': False,
-    },
-    'file_validation_rules': {
-        'file_name_file_mask': 'SalesJ',
-        'file_extension': 'csv',
-        'file_size_range': [0, 1],
-        'file_row_count_range': [0, 1000],
-        # 'file_header_column_names': ['Transaction_date', 'Product', 'Price', 'Payment_Type', 'Name', 'City', 'State',
-        #                              'Country', 'Account_Created', 'Last_Login', 'Latitude', 'Longitude']
-    },
-    'column_validation_rules': {
-        0: {
-            'allow_data_type': 'datetime',
-        },
-        1: {
-            # 'allow_fixed_value_list': ['Norway', 'www'],
-            # 'allow_regex': '$#%@%^@',
-            # 'allow_substring': '',
-            'allow_data_type': 'str'
-        },
-        2: {
-            'allow_numeric_value_range': [0, 100000],
-            # 'allow_fixed_value': '1000',
-            'allow_data_type': 'int'
-            # 'Transaction_date': {
-            #     'allow_data_type': 'datetime',
-            # },
-            # 'Country': {
-            #     # 'allow_fixed_value_list': ['Norway', 'www'],
-            #     # 'allow_regex': '$#%@%^@',
-            #     # 'allow_substring': '',
-            #     'allow_data_type': 'str'
-            # },
-            # 'Price': {
-            #     'allow_numeric_value_range': [0, 100000],
-            #     # 'allow_fixed_value': '1000',
-            #     'allow_data_type': 'int'
-        }
-    }
-}
 
 
 def validation_runner(file, config):
@@ -72,22 +28,23 @@ def validation_runner(file, config):
 
     logger.info(f'Evaluation of column validation rules starting')
 
-    column_level_validations_counter = 0
+    column_level_validated_items_counter = 0
     column_level_failed_validations_counter = 0
     try:
         for idx, line in enumerate(validation_file_obj.file_read_generator()):
             _all_validations_count, _all_failed_validations_counter = ValidateFile.validate_line(validation_file_obj,
                                                                                                  line, idx)
-            column_level_validations_counter += _all_validations_count
+
+            column_level_validated_items_counter += _all_validations_count
             column_level_failed_validations_counter += _all_failed_validations_counter
 
-        logger.info(f'Evaluation of {column_level_validations_counter} column validation rules finished')
+        logger.info(f'Evaluation of {column_level_validated_items_counter} column validation rules finished')
         logger.info(f'Validation of {file} finished with: '
                     f'{file_level_failed_validations_counter} failed file level validations ,'
                     f'{column_level_failed_validations_counter} failed column level validations')
 
     except InvalidLineColumnCountException as ColCountErr:
-        logger.error(f'File cannot be validated, column count is not consistent {ColCountErr}')
+        logger.error(f'File {file} cannot be validated, column count is not consistent {ColCountErr}')
 
     ValidateFile.close_file_handler(validation_file_obj)
 
@@ -99,25 +56,37 @@ def prepare_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-fl', '--filelocation', type=str, required=True)
-    parser.add_argument('-config', '--configfile', type=str, required=True)
+    parser.add_argument('-cfg', '--configfile', type=str, required=True)
     parsed = parser.parse_args()
 
-    file = parsed.filelocation
-    config = parsed.configfile
+    _parsed_file_loc = parsed.filelocation
+    if os.path.isdir(_parsed_file_loc):
+        parsed_file_loc = [f for f in os.listdir(_parsed_file_loc) if
+                           os.path.isfile(os.path.join(_parsed_file_loc, f))]
 
-    # verify the source file location is a valid file and folder
+    elif os.path.isfile(_parsed_file_loc):
+        parsed_file_loc = [_parsed_file_loc]
+    else:
+        raise OSError()
 
-    # load the config file to dict in case it's a filepath
-    # do the same if it's a json
+    _parsed_config = parsed.configfile
+    if os.path.isfile(_parsed_config):
+        try:
+            parsed_config = json.loads(_parsed_config)
+        except json.JSONDecodeError as JE:
+            raise (f"wtf - {JE}")
+    elif json.loads(_parsed_config):
+        parsed_config = _parsed_config
+    else:
+        raise NotImplementedError("invalid config")
 
-    return {'file': file,
-            'config': config}
+    return {'file_loc': parsed_file_loc,
+            'config': parsed_config}
 
 
 if __name__ == '__main__':
 
-    # prepared_args = prepare_args()
-    # main_result = main(**prepared_args)
+    prepared_args = prepare_args()
 
-    for file in FILEPATH:
-        validation_runner(file, CONFIG)
+    for file in prepared_args['file_loc']:
+        validation_runner(file, CONFIG)#prepared_args['config'])

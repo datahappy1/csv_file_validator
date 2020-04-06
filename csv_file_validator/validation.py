@@ -59,9 +59,6 @@ class SetupValidation:
         config file validation method
         :return:
         """
-        if not isinstance(self.config, dict):
-            raise Exception('config file not dict')
-
         if not self.config.get('file_metadata'):
             raise Exception('config file missing metadata object')
 
