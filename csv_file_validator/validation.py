@@ -2,20 +2,9 @@ import logging
 import csv
 from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
+from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
 
 logger = logging.getLogger(__name__)
-
-
-class InvalidConfigException(Exception):
-    """
-    Invalid configuration file Exception custom exception type
-    """
-
-
-class InvalidLineColumnCountException(Exception):
-    """
-    Invalid Line Column Count Exception custom exception type
-    """
 
 
 class SetupValidation:

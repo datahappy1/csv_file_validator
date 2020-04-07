@@ -2,7 +2,9 @@ import os
 import json
 import logging
 import argparse
-from csv_file_validator.validation import SetupValidation, ValidateFile, InvalidLineColumnCountException
+from csv_file_validator.validation import SetupValidation, ValidateFile
+from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
+    InvalidFileLocationException
 
 # set logging levels for main function console output
 logging_level = logging.DEBUG
@@ -48,6 +50,8 @@ def validation_runner(file, config):
 
     ValidateFile.close_file_handler(validation_file_obj)
 
+    return 0
+
 
 def prepare_args():
     """
@@ -71,7 +75,7 @@ def prepare_args():
     elif os.path.isfile(_parsed_file_loc):
         parsed_file_loc = [_parsed_file_loc]
     else:
-        raise OSError("Could not load files for validation")
+        raise InvalidFileLocationException(f"Could not load file(s) {_parsed_file_loc} for validation")
 
     _parsed_config = parsed.configfile
 
@@ -79,12 +83,18 @@ def prepare_args():
         with open(_parsed_config, mode='r') as json_file:
             try:
                 parsed_config = json.load(json_file)
-            except json.JSONDecodeError as JE:
-                raise Exception(f"wtf - {JE}")
-    elif json.loads(_parsed_config):
-        parsed_config = _parsed_config
+            except json.JSONDecodeError as jsonDecodeErr:
+                raise InvalidConfigException(f"Could not load config - valid file, JSON decode error {jsonDecodeErr}")
+            except Exception as Exc:
+                raise InvalidConfigException(f"Could not load config - valid file, general exception {Exc}")
     else:
-        raise NotImplementedError("invalid config")
+        try:
+            json.loads(_parsed_config)
+            parsed_config = _parsed_config
+        except json.JSONDecodeError as jsonDecodeErr:
+            raise InvalidConfigException(f"Could not load config - not a valid file, JSON decode error {jsonDecodeErr}")
+        except Exception as Exc:
+            raise InvalidConfigException(f"Could not load config - not a valid file, general exception {Exc}")
 
     return {'file_loc': parsed_file_loc,
             'config': parsed_config}
@@ -92,6 +102,5 @@ def prepare_args():
 
 if __name__ == '__main__':
     prepared_args = prepare_args()
-
     for file in prepared_args['file_loc']:
         validation_runner(file, prepared_args['config'])
