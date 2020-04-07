@@ -60,7 +60,7 @@ class SetupValidation:
         :return:
         """
         if not self.config.get('file_metadata'):
-            raise Exception('config file missing metadata object')
+            raise InvalidConfigException('config file missing metadata object')
 
         if not self.config.get('file_validation_rules') and \
                 not self.config.get('column_validation_rules'):

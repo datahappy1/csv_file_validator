@@ -60,21 +60,27 @@ def prepare_args():
     parsed = parser.parse_args()
 
     _parsed_file_loc = parsed.filelocation
+
     if os.path.isdir(_parsed_file_loc):
-        parsed_file_loc = [f for f in os.listdir(_parsed_file_loc) if
-                           os.path.isfile(os.path.join(_parsed_file_loc, f))]
+        parsed_file_loc = []
+        for path in os.listdir(_parsed_file_loc):
+            full_path = os.path.join(_parsed_file_loc, path)
+            if os.path.isfile(full_path):
+                parsed_file_loc.append(full_path)
 
     elif os.path.isfile(_parsed_file_loc):
         parsed_file_loc = [_parsed_file_loc]
     else:
-        raise OSError()
+        raise OSError("Could not load files for validation")
 
     _parsed_config = parsed.configfile
+
     if os.path.isfile(_parsed_config):
-        try:
-            parsed_config = json.loads(_parsed_config)
-        except json.JSONDecodeError as JE:
-            raise (f"wtf - {JE}")
+        with open(_parsed_config, mode='r') as json_file:
+            try:
+                parsed_config = json.load(json_file)
+            except json.JSONDecodeError as JE:
+                raise Exception(f"wtf - {JE}")
     elif json.loads(_parsed_config):
         parsed_config = _parsed_config
     else:
@@ -85,8 +91,7 @@ def prepare_args():
 
 
 if __name__ == '__main__':
-
     prepared_args = prepare_args()
 
     for file in prepared_args['file_loc']:
-        validation_runner(file, CONFIG)#prepared_args['config'])
+        validation_runner(file, prepared_args['config'])
