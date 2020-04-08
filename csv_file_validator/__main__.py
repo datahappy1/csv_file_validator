@@ -47,6 +47,8 @@ def validation_runner(file, config):
 
     except InvalidLineColumnCountException as ColCountErr:
         logger.error(f'File {file} cannot be validated, column count is not consistent {ColCountErr}')
+    except InvalidConfigException as ConfErr:
+        logger.error(f'File {file} cannot be validated, config is not consistent with the file content {ConfErr}')
 
     ValidateFile.close_file_handler(validation_file_obj)
 
