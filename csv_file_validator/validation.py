@@ -88,15 +88,15 @@ class SetupValidation:
         return {k: v for k, v in self.config.get('file_validation_rules').items()}
 
     #TODO remove
-    def get_config_column_validation_rules_items(self, column) -> dict:
-        """
-        method for returning column validation rules configuration items
-        :param column:
-        :return:
-        """
-        return {k: v for k, v in self.config.get('column_validation_rules').items() if k == column}
+    # def get_config_column_validation_rules_items(self, column) -> dict:
+    #     """
+    #     method for returning column validation rules configuration items
+    #     :param column:
+    #     :return:
+    #     """
+    #     return {k: v for k, v in self.config.get('column_validation_rules').items() if k == column}
 
-    def get_config_column_validation_rules_itemsx(self, columns) -> dict:
+    def get_config_column_validation_rules_items(self, columns) -> dict:
         """
         method for returning column validation rules configuration items
         :param column:
@@ -134,6 +134,7 @@ class ValidateFile(SetupValidation):
         self.file_handler.seek(0)
 
         self.file_level_validations = self.get_config_file_validation_rules_items()
+        self.column_level_validations = None
 
     def file_read_generator(self) -> dict:
         """
@@ -183,7 +184,9 @@ class ValidateFile(SetupValidation):
                                                                       )
         return file_level_validations_count, file_level_validations_fail_count
 
-    def validate_line(self, line, idx):
+
+
+    def validate_line_values(self, line, idx):
         """
         method for validating a line in a file, for every column level validation, call
         the mapped validation function and process it
@@ -197,34 +200,34 @@ class ValidateFile(SetupValidation):
         columns = []
         for k, v in line.items():
             columns.append(k)
-        self.column_level_validationsx = self.get_config_column_validation_rules_itemsx(columns=columns)
-        logger.info(f'found {len(self.column_level_validationsx)} column validations')
-
-        if not self.column_level_validationsx:
-            raise InvalidConfigException('Column validations set in the config, '
-                                         'but specified columns not found the file')
-        if len(self.column_level_validationsx) < len('len of column level validations in the config '):
-            #TODO
-            pass
+        self.column_level_validations = self.get_config_column_validation_rules_items(columns=columns)
 
         def _xxx(column):
-            print(self.get_config_column_validation_rules_items(column=column))
-            return self.get_config_column_validation_rules_items(column=column)
+            return self.column_level_validations.g
+
+        logger.info(f'found {len(self.column_level_validationsx)} column validations')
+
+        if not self.column_level_validations:
+            raise InvalidConfigException('Column validations set in the config, '
+                                         'but specified columns not found the file')
+        if len(self.column_level_validations) < len('len of column level validations in the config '):
+            #TODO
+            pass
 
         for k, v in line.items():
             #column_level_validations = self.get_config_column_validation_rules_items(column=k)
 
-            for column, validations in self.column_level_validationsx.items():
-                if _xxx(column):
-                    #TODO make sure only
-                    column_level_validations_count += 1
+            for column, validations in self.column_level_validations.items():
+                #TODO make sure only
 
-                    for validation, value in validations.items():
-                        column_level_validations_fail_count += self.function_caller(validation,
-                                                                                    **{'column': column,
-                                                                                       'validation_value': value,
-                                                                                       'column_value': v,
-                                                                                       'row_number': idx}
-                                                                                    )
+                column_level_validations_count += 1
+
+                for validation, value in validations.items():
+                    column_level_validations_fail_count += self.function_caller(validation,
+                                                                                **{'column': column,
+                                                                                   'validation_value': value,
+                                                                                   'column_value': v,
+                                                                                   'row_number': idx}
+                                                                                )
 
         return column_level_validations_count, column_level_validations_fail_count

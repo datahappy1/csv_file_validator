@@ -34,8 +34,8 @@ def validation_runner(file, config):
     column_level_failed_validations_counter = 0
     try:
         for idx, line in enumerate(validation_file_obj.file_read_generator()):
-            _all_validations_count, _all_failed_validations_counter = ValidateFile.validate_line(validation_file_obj,
-                                                                                                 line, idx)
+            _all_validations_count, _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
+                                                                                                        line, idx)
 
             column_level_validated_items_counter += _all_validations_count
             column_level_failed_validations_counter += _all_failed_validations_counter
