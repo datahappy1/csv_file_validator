@@ -12,26 +12,25 @@ logging.basicConfig(level=logging_level)
 logger = logging.getLogger(__name__)
 
 
-def validation_runner(file, config):
-    logger.info(f'Validation of {file} started')
+def validation_runner(file_name, config):
+    logger.info(f'Validation of {file_name} started')
 
     validation_obj = SetupValidation(config)
     validation_obj.get_validated_config()
 
     logger.info(f'Validation config initiated and validated')
 
-    validation_file_obj = ValidateFile(config, file)
-
-    logger.info(f'Evaluation of file validation rules starting')
+    validation_file_obj = ValidateFile(config, file_name)
 
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
+    logger.info(f'Found {file_level_validations_count} file level validations')
+    logger.info(f'Evaluation of file validation rules starting')
     file_level_failed_validations_counter = validation_file_obj.validate_file()
-
-    logger.info(f'Evaluation of {file_level_validations_count} file validation rules finished')
-
-    logger.info(f'Evaluation of column validation rules starting')
+    logger.info(f'Evaluation of file validation rules finished')
 
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
+    logger.info(f'Found {column_level_validations_count} column level validations')
+    logger.info(f'Evaluation of column validation rules starting')
     column_level_failed_validations_counter = 0
     try:
         for idx, line in enumerate(validation_file_obj.file_read_generator()):
@@ -40,9 +39,8 @@ def validation_runner(file, config):
 
             column_level_failed_validations_counter += _all_failed_validations_counter
 
-        logger.info(f'Evaluation of {column_level_validations_count} column validation rules finished')
-
-        logger.info(f'Validation of {file} finished with: '
+        logger.info(f'Evaluation of column validation rules finished')
+        logger.info(f'Validation of {file_name} finished with: '
                     f'{file_level_failed_validations_counter} failed file level validations ,'
                     f'{column_level_failed_validations_counter} failed column level validations')
 
@@ -88,17 +86,17 @@ def prepare_args():
             try:
                 parsed_config = json.load(json_file)
             except json.JSONDecodeError as jsonDecodeErr:
-                raise InvalidConfigException(f"Could not load config - valid file, JSON decode error {jsonDecodeErr}")
+                raise InvalidConfigException(f"Could not load config - valid file, JSON decode error: {jsonDecodeErr}")
             except Exception as Exc:
-                raise InvalidConfigException(f"Could not load config - valid file, general exception {Exc}")
+                raise InvalidConfigException(f"Could not load config - valid file, general exception: {Exc}")
     else:
         try:
             json.loads(_parsed_config)
             parsed_config = _parsed_config
         except json.JSONDecodeError as jsonDecodeErr:
-            raise InvalidConfigException(f"Could not load config - not a valid file, JSON decode error {jsonDecodeErr}")
+            raise InvalidConfigException(f"Could not load config - not a valid file, JSON decode error: {jsonDecodeErr}")
         except Exception as Exc:
-            raise InvalidConfigException(f"Could not load config - not a valid file, general exception {Exc}")
+            raise InvalidConfigException(f"Could not load config - not a valid file, general exception: {Exc}")
 
     return {'file_loc': parsed_file_loc_list,
             'config': parsed_config}
