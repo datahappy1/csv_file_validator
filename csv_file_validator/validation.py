@@ -72,13 +72,17 @@ class SetupValidation:
         """
         return self.config.get('file_metadata').items()
 
-    def _get_config_file_metadata_value(self, metadata_value) -> Union[str, list]:
+    def _get_config_file_metadata_value(self, metadata_value) -> Union[None, list]:
         """
         method for returning file_metadata configuration item
         :param metadata_value:
         :return:
         """
-        return [v for k, v in self._get_config_file_metadata_all_items() if k == metadata_value][0]
+        try:
+            return [v for k, v in self._get_config_file_metadata_all_items() if k == metadata_value][0]
+        except IndexError:
+            logger.info(f'Cannot find {metadata_value} in config, using {metadata_value}=None')
+            return None
 
     def get_config_file_validation_rules_all_items(self) -> dict:
         """
@@ -117,6 +121,7 @@ class ValidateFile(SetupValidation):
         self.file_handler = open(file, mode='r', encoding='utf8')
         self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
+        self.file_value_quoting = self._get_config_file_metadata_value('file_value_quoting')
 
         if self._get_config_file_metadata_value('file_has_header'):
             self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator)\
@@ -126,6 +131,7 @@ class ValidateFile(SetupValidation):
                                                      .split(self.file_value_separator))
 
             self.column_level_validations_from_file = self.file_header
+            self._header_passed = None
         else:
             self.file_header = None
 
@@ -177,16 +183,19 @@ class ValidateFile(SetupValidation):
         file reading generator method
         :return:
         """
-        reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=None)
+        reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=self.file_value_quoting)
         for row_index, row in enumerate(reader):
             if len(row) != self.first_data_row_control_length:
                 raise InvalidLineColumnCountException(f'row #:{row_index} , row line: {row}')
 
             if self.file_header:
                 # if file contains header, yield column names with values
-                # {(column name 1, value),(column name 2),..}
-                if [x for x in self.file_header] != row:
+                # {(column name 1, value), (column name 2),..}
+                if [x for x in self.file_header] != row or self._header_passed is True:
                     yield dict(zip(self.file_header, row))
+                else:
+                    self._header_passed = True
+                    pass
 
             else:
                 # if file is without header, yield column indexes with values
