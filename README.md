@@ -1,5 +1,6 @@
 # csv_file_validator
 ### Python 3+ CSV file validation tool 
+Work in progress
 
 #### what this tool can do:
 The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema and a file path of the file to be validated, or a folder path to validate multiple files in one run against one provided validation schema.  
@@ -69,6 +70,41 @@ Mandatory objects in the validation schema json are:
 
 
 ##### Validation schema for a file without a header:
+If validating a file that has no header, we have to set the `file_has_header` key to `false` and define the column indexes in the `column validation rules` so they're starting from 0 for the first column.
+```json
+{
+   "file_metadata":{
+      "file_value_separator":",",
+      "file_row_terminator":"\n",
+      "file_has_header":false
+   },
+   "file_validation_rules":{
+      "file_name_file_mask":"SalesJ",
+      "file_extension":"csv",
+      "file_size_range":[0,1],
+      "file_row_count_range":[0,1000]
+   },
+   "column_validation_rules":{
+      "0":{
+         "allow_data_type":"datetime"
+      },
+      "1":{
+         "allow_fixed_value_list":[
+            "Norway",
+            "www"
+         ],
+         "allow_regex":"$#%@%^@",
+         "allow_substring":"",
+         "allow_data_type":"str"
+      },
+      "2":{
+         "allow_numeric_value_range":[0, 100000],
+         "allow_fixed_value":"1000",
+         "allow_data_type":"int"
+      }
+   }
+}
+```
 
 #### how to install & run:
 - ideally create and activate a `virtual environment` or `pipenv`
