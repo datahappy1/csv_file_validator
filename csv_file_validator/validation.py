@@ -131,7 +131,7 @@ class ValidateFile(SetupValidation):
                                                      .split(self.file_value_separator))
 
             self.column_level_validations_from_file = self.file_header
-            self._header_passed = None
+
         else:
             self.file_header = None
 
@@ -183,18 +183,22 @@ class ValidateFile(SetupValidation):
         file reading generator method
         :return:
         """
+        _int_row_counter = 0
         reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=self.file_value_quoting)
         for row_index, row in enumerate(reader):
+            _int_row_counter +=1
             if len(row) != self.first_data_row_control_length:
                 raise InvalidLineColumnCountException(f'row #:{row_index} , row line: {row}')
 
             if self.file_header:
                 # if file contains header, yield column names with values
                 # {(column name 1, value), (column name 2),..}
-                if [x for x in self.file_header] != row or self._header_passed is True:
+                # or if the file header already passed through the generator,
+                # yield such row value to the validations to capture erroneous files having multiple headers
+                # as these header values should not pass the validations
+                if [x for x in self.file_header] != row or _int_row_counter > 1:
                     yield dict(zip(self.file_header, row))
                 else:
-                    self._header_passed = True
                     pass
 
             else:
