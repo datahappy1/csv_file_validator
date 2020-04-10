@@ -39,7 +39,7 @@
     },
     "Price": {
       "allow_numeric_value_range": [
-        0,
+        1000,
         100000
       ],
       "allow_data_type": "int"

@@ -183,12 +183,14 @@ class ValidateFile(SetupValidation):
                 raise InvalidLineColumnCountException(f'row #:{row_index} , row line: {row}')
 
             if self.file_header:
-                # if file contains header, yield {(column name 1, value),(column name 2),..}
-                if self.file_value_separator.join(self.file_header) != row:
+                # if file contains header, yield column names with values
+                # {(column name 1, value),(column name 2),..}
+                if [x for x in self.file_header] != row:
                     yield dict(zip(self.file_header, row))
 
             else:
-                # if file is without header, yield {(column index, value), (column index2, value),..}
+                # if file is without header, yield column indexes with values
+                # {(0, value), (1, value),..}
                 yield dict(zip(self.column_level_validations_from_file, row))
 
     def close_file_handler(self):
@@ -230,25 +232,25 @@ class ValidateFile(SetupValidation):
             raise InvalidConfigException('Column validations set in the config, '
                                          'but none of the related columns found the file')
 
-        elif len(self.column_level_validations) < len(self.get_config_column_validation_rules_all_items()):
+        if len(self.column_level_validations) < len(self.get_config_column_validation_rules_all_items()):
             raise InvalidConfigException('Column validations set in the config, '
                                          'but not all related columns found the file')
-        else:
-            # looping through column names and column values in the line items
-            for column_name, column_value in line.items():
 
-                column_level_validations = self._get_column_level_validation_items(col=column_name)
-                # looping through validations for each column
-                for column, validations in column_level_validations.items():
+        # looping through column names and column values in the line items
+        for column_name, column_value in line.items():
 
-                    # looping through validation items
-                    for validation, validation_value in validations.items():
+            column_level_validations = self._get_column_level_validation_items(col=column_name)
+            # looping through validations for each column
+            for column, validations in column_level_validations.items():
 
-                        column_level_validations_fail_count += self.function_caller(validation,
-                                                                                    **{'column': column,
-                                                                                       'validation_value': validation_value,
-                                                                                       'column_value': column_value,
-                                                                                       'row_number': idx}
-                                                                                    )
+                # looping through validation items
+                for validation, validation_value in validations.items():
+
+                    column_level_validations_fail_count += self.function_caller(validation,
+                                                                                **{'column': column,
+                                                                                   'validation_value': validation_value,
+                                                                                   'column_value': column_value,
+                                                                                   'row_number': idx}
+                                                                                )
 
         return column_level_validations_fail_count

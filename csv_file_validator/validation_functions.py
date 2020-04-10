@@ -17,10 +17,11 @@ def _get_logged_error(func_name, **kwargs) -> logger:
     :return:
     """
     logged_string = f'{func_name} - failed to meet this value : {kwargs.get("validation_value")}'
+
     if kwargs.get("row_number"):
         logged_string += f' - Row#: {kwargs["row_number"]}'
     if kwargs.get("column"):
-        logged_string += f' - Column: {kwargs["column"]}'
+        logged_string += f' - Column name: {kwargs["column"]}'
     if kwargs.get("column_value"):
         logged_string += f' - Column value: {kwargs["column_value"]}'
     if kwargs.get("Exception"):

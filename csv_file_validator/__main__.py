@@ -35,7 +35,7 @@ def validation_runner(file_name, config):
         logger.info(f'Evaluation of column validation rules starting')
         column_level_failed_validations_counter = 0
         try:
-            for idx, line in enumerate(validation_file_obj.file_read_generator()):
+            for idx, line in enumerate(validation_file_obj.file_read_generator(), start=1):
                 _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
                                                                                     line, idx)
 
