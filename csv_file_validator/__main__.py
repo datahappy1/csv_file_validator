@@ -24,30 +24,32 @@ def validation_runner(file_name, config):
 
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
     logger.info(f'Found {file_level_validations_count} file level validations')
-    logger.info(f'Evaluation of file validation rules starting')
-    file_level_failed_validations_counter = validation_file_obj.validate_file()
-    logger.info(f'Evaluation of file validation rules finished')
+    if file_level_validations_count:
+        logger.info(f'Evaluation of file validation rules starting')
+        file_level_failed_validations_counter = validation_file_obj.validate_file()
+        logger.info(f'Evaluation of file validation rules finished')
 
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
     logger.info(f'Found {column_level_validations_count} column level validations')
-    logger.info(f'Evaluation of column validation rules starting')
-    column_level_failed_validations_counter = 0
-    try:
-        for idx, line in enumerate(validation_file_obj.file_read_generator()):
-            _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
-                                                                                line, idx)
+    if column_level_validations_count:
+        logger.info(f'Evaluation of column validation rules starting')
+        column_level_failed_validations_counter = 0
+        try:
+            for idx, line in enumerate(validation_file_obj.file_read_generator()):
+                _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
+                                                                                    line, idx)
 
-            column_level_failed_validations_counter += _all_failed_validations_counter
+                column_level_failed_validations_counter += _all_failed_validations_counter
 
-        logger.info(f'Evaluation of column validation rules finished')
-        logger.info(f'Validation of {file_name} finished with: '
-                    f'{file_level_failed_validations_counter} failed file level validations ,'
-                    f'{column_level_failed_validations_counter} failed column level validations')
+            logger.info(f'Evaluation of column validation rules finished')
+            logger.info(f'Validation of {file_name} finished with: '
+                        f'{file_level_failed_validations_counter} failed file level validations ,'
+                        f'{column_level_failed_validations_counter} failed column level validations')
 
-    except InvalidLineColumnCountException as ColCountErr:
-        logger.error(f'File {file} cannot be validated, column count is not consistent, {ColCountErr}')
-    except InvalidConfigException as ConfErr:
-        logger.error(f'File {file} cannot be validated, config is not consistent with the file content,  {ConfErr}')
+        except InvalidLineColumnCountException as ColCountErr:
+            logger.error(f'File {file} cannot be validated, column count is not consistent, {ColCountErr}')
+        except InvalidConfigException as ConfErr:
+            logger.error(f'File {file} cannot be validated, config is not consistent with the file content,  {ConfErr}')
 
     ValidateFile.close_file_handler(validation_file_obj)
 

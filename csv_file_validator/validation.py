@@ -95,15 +95,15 @@ class SetupValidation:
         """
         return {k: v for k, v in self.config.get('column_validation_rules').items()}
 
-    # TODO rename + docstrings
-    def get_config_column_validation_rules_items(self, columns) -> dict:
+    def get_validated_config_column_validation_rules_items(self, columns) -> dict:
         """
         method for returning column validation rules configuration items
+        that are verified to be in the column names of the validated file
         :param columns:
         :return:
         """
-
-        return {k: v for k, v in self.get_config_column_validation_rules_all_items().items() if k in columns}
+        return {k: v for k, v in self.get_config_column_validation_rules_all_items().items()
+                if k in columns}
 
 
 class ValidateFile(SetupValidation):
@@ -119,42 +119,51 @@ class ValidateFile(SetupValidation):
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
 
         if self._get_config_file_metadata_value('file_has_header'):
-            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator).split(
-                self.file_value_separator)
-            self.first_data_row_control_length = len(self.file_handler.readline().split(self.file_value_separator))
+            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator)\
+                .split(self.file_value_separator)
+
+            self.first_data_row_control_length = len(self.file_handler.readline()
+                                                     .split(self.file_value_separator))
+
             self.column_level_validations_from_file = self.file_header
         else:
             self.file_header = None
-            self.first_data_row_control_length = len(self.file_handler.readline().split(self.file_value_separator))
-            self.column_level_validations_from_file = [x for x in range(0, self.first_data_row_control_length)]
+
+            self.first_data_row_control_length = len(self.file_handler.readline()
+                                                     .split(self.file_value_separator))
+            self.column_level_validations_from_file = \
+                [x for x in range(0, self.first_data_row_control_length)]
+
+        # adding +1 because we already read the first file row while setting
+        # the self.first_data_row_control_length
         self.file_row_count = sum(1 for line in self.file_handler) + 1
         self._reset_file_handler()
 
         self.file_level_validations = self.get_config_file_validation_rules_all_items()
-        self.column_level_validations = self.get_config_column_validation_rules_items(
+        self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
 
     def get_number_of_file_level_validations(self):
         """
-
+        function returning the count of the file level validations
         :return:
         """
         return len(self.file_level_validations)
 
     def get_number_of_column_level_validations(self):
         """
-
+        function returning the count of the column level validations
         :return:
         """
         return len(self.column_level_validations)
 
     def _get_column_level_validation_items(self, col):
         """
-
+        function returning for each column the validations found
         :param col:
         :return:
         """
-        return {k: v for k, v in self.column_level_validations.items() if k == [str(col)]}
+        return {k: v for k, v in self.column_level_validations.items() if k == str(col)}
 
     def _reset_file_handler(self):
         """
@@ -227,12 +236,14 @@ class ValidateFile(SetupValidation):
         else:
             # looping through column names and column values in the line items
             for column_name, column_value in line.items():
+
                 column_level_validations = self._get_column_level_validation_items(col=column_name)
                 # looping through validations for each column
-                # TODO check all the loops if needed
                 for column, validations in column_level_validations.items():
-                    # looping through validation
+
+                    # looping through validation items
                     for validation, validation_value in validations.items():
+
                         column_level_validations_fail_count += self.function_caller(validation,
                                                                                     **{'column': column,
                                                                                        'validation_value': validation_value,
