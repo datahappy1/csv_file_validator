@@ -124,7 +124,7 @@ class ValidateFile(SetupValidation):
         self.file_value_quoting = self._get_config_file_metadata_value('file_value_quoting')
 
         if self._get_config_file_metadata_value('file_has_header'):
-            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator)\
+            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
 
             self.first_data_row_control_length = len(self.file_handler.readline()
@@ -186,25 +186,25 @@ class ValidateFile(SetupValidation):
         _int_row_counter = 0
         reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=self.file_value_quoting)
         for row_index, row in enumerate(reader):
-            _int_row_counter +=1
+            _int_row_counter += 1
             if len(row) != self.first_data_row_control_length:
                 raise InvalidLineColumnCountException(f'row #:{row_index} , row line: {row}')
 
             if self.file_header:
-                # if file contains header, yield column names with values
-                # {(column name 1, value), (column name 2),..}
+                # if file contains header, yield row number and column names with values
+                # row number,{(column name 1, value), (column name 2),..}
                 # or if the file header already passed through the generator,
                 # yield such row value to the validations to capture erroneous files having multiple headers
                 # as these header values should not pass the validations
                 if [x for x in self.file_header] != row or _int_row_counter > 1:
-                    yield dict(zip(self.file_header, row))
+                    yield _int_row_counter, dict(zip(self.file_header, row))
                 else:
                     pass
 
             else:
-                # if file is without header, yield column indexes with values
-                # {(0, value), (1, value),..}
-                yield dict(zip(self.column_level_validations_from_file, row))
+                # if file is without header, yield row number column indexes with values
+                # row number,{(0, value), (1, value),..}
+                yield _int_row_counter, dict(zip(self.column_level_validations_from_file, row))
 
     def close_file_handler(self):
         """
@@ -258,7 +258,6 @@ class ValidateFile(SetupValidation):
 
                 # looping through validation items
                 for validation, validation_value in validations.items():
-
                     column_level_validations_fail_count += self.function_caller(validation,
                                                                                 **{'column': column,
                                                                                    'validation_value': validation_value,

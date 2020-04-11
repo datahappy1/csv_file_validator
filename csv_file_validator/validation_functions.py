@@ -2,10 +2,28 @@ import os
 import re
 import sys
 import logging
+import functools
 from dateutil import parser
 
 logger = logging.getLogger(__name__)
 currentFuncName = lambda n=0: sys._getframe(n + 1).f_code.co_name
+
+
+def logging_decorator(func):
+    @functools.wraps(func)
+    def wrapper_decorator(**kwargs):
+        try:
+            validation_result = func(**kwargs)
+        except Exception as Exc:
+            validation_result = 1
+            kwargs['Exception'] = Exc
+
+        if validation_result != 0:
+            _get_logged_error(func_name=func.__name__, **kwargs)
+
+        return validation_result
+
+    return wrapper_decorator
 
 
 def _get_logged_error(func_name, **kwargs) -> logger:
@@ -29,6 +47,7 @@ def _get_logged_error(func_name, **kwargs) -> logger:
     logger.error(logged_string)
 
 
+@logging_decorator
 def check_file_extension(**kwargs):
     """
     validation function checking the file extension is equal to the expected value
@@ -38,10 +57,10 @@ def check_file_extension(**kwargs):
     if os.path.splitext(kwargs.get('file_name'))[1][1:] == kwargs.get('validation_value'):
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_file_mask(**kwargs):
     """
     validation function checking the file name file mask against a provided regex expr.
@@ -56,10 +75,10 @@ def check_file_mask(**kwargs):
     if result:
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_file_size_range(**kwargs):
     """
     validation function checking file size in MB is inside a numeric range
@@ -74,10 +93,10 @@ def check_file_size_range(**kwargs):
             >= kwargs.get('validation_value')[0]:
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_file_row_count_range(**kwargs):
     """
     validation function checking file row count is inside a numeric range
@@ -90,10 +109,10 @@ def check_file_row_count_range(**kwargs):
             >= kwargs.get('validation_value')[0]:
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_file_header_column_names(**kwargs):
     """
     validation function checking file header row is equal to the expected header row
@@ -103,10 +122,10 @@ def check_file_header_column_names(**kwargs):
     if kwargs.get('validation_value') == kwargs.get('file_header'):
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_column_allow_data_type(**kwargs):
     """
     validation function checking column value data type is equal to the expected data type
@@ -126,12 +145,11 @@ def check_column_allow_data_type(**kwargs):
             raise NotImplementedError
         return 0
 
-    except (TypeError, ValueError) as TVE:
-        kwargs['Exception'] = TVE
-        _get_logged_error(currentFuncName(), **kwargs)
-        return 1
+    except (TypeError, ValueError):
+        raise
 
 
+@logging_decorator
 def check_column_allow_numeric_value_range(**kwargs):
     """
     validation function checking column value is inside a numeric range
@@ -145,15 +163,13 @@ def check_column_allow_numeric_value_range(**kwargs):
                 <= kwargs.get("validation_value")[1]:
             return 0
         else:
-            _get_logged_error(currentFuncName(), **kwargs)
             return 1
 
-    except ValueError as VE:
-        kwargs['Exception'] = VE
-        _get_logged_error(currentFuncName(), **kwargs)
-        return 1
+    except ValueError:
+        raise
 
 
+@logging_decorator
 def check_column_allow_fixed_value_list(**kwargs):
     """
     validation function checking column value is in a expected list of values
@@ -163,10 +179,10 @@ def check_column_allow_fixed_value_list(**kwargs):
     if kwargs.get("column_value") in [x for x in kwargs.get("validation_value")]:
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_column_allow_fixed_value(**kwargs):
     """
     validation function checking column value is equal to a expected value
@@ -176,10 +192,10 @@ def check_column_allow_fixed_value(**kwargs):
     if kwargs.get("column_value") == kwargs.get("validation_value"):
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_column_allow_substring(**kwargs):
     """
     validation function checking column value is a substring of a provided string
@@ -189,10 +205,10 @@ def check_column_allow_substring(**kwargs):
     if kwargs.get("column_value") in kwargs.get("validation_value"):
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1
 
 
+@logging_decorator
 def check_column_allow_regex(**kwargs):
     """
     validation function checking column value against a provided regex expr.
@@ -204,5 +220,4 @@ def check_column_allow_regex(**kwargs):
     if result:
         return 0
     else:
-        _get_logged_error(currentFuncName(), **kwargs)
         return 1

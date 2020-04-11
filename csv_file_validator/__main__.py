@@ -35,7 +35,7 @@ def validation_runner(file_name, config):
         logger.info(f'Evaluation of column validation rules starting')
         column_level_failed_validations_counter = 0
         try:
-            for idx, line in enumerate(validation_file_obj.file_read_generator(), start=1):
+            for idx, line in validation_file_obj.file_read_generator():
                 _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
                                                                                     line, idx)
 
@@ -96,7 +96,8 @@ def prepare_args():
             json.loads(_parsed_config)
             parsed_config = _parsed_config
         except json.JSONDecodeError as jsonDecodeErr:
-            raise InvalidConfigException(f"Could not load config - not a valid file, JSON decode error: {jsonDecodeErr}")
+            raise InvalidConfigException(
+                f"Could not load config - not a valid file, JSON decode error: {jsonDecodeErr}")
         except Exception as Exc:
             raise InvalidConfigException(f"Could not load config - not a valid file, general exception: {Exc}")
 

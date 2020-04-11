@@ -120,7 +120,15 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - run using a command `python3 -xxxx`
 
 #### how to add custom validation rule:
-- prepare your function in `/csv_file_validator/validation_functions.py` module
+- prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
+```python
+@logging_decorator 
+def my_validation_function(kwargs):
+    if 'my validations are ok':
+        return 0
+    else:
+        return 1
+```
 - this function has to return 0 on successful validation, 1 on a failed validation
 - add your function to the registered validation keys - functions mapping in `/csv_file_validator/validation.py` in the `function_caller` static method like:
 
