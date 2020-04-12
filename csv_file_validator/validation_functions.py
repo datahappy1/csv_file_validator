@@ -45,6 +45,9 @@ def logging_decorator(func):
         try:
             validation_result = func(**kwargs)
         except Exception as exc:
+            # in case validation function raised exception,
+            # we still need to add one more failed validation
+            # for the __main__ error counter
             validation_result = 1
             kwargs['Exception'] = exc
 
