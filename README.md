@@ -171,8 +171,8 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - run using a command for example: `python C:\csv_file_validator\csv_file_validator\__main__.py -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_fixed.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
 
 ##### arguments needed:
-- `-fl` <str: mandatory> file location or folder location in case you need to validate multiple files
-- `-cfg` <str: mandatory> configuration file location or directly your config json 
+- `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
+- `-cfg` <string: mandatory> configuration file location or you can input directly config json as a string 
 
 #### how to add custom validation rule:
 - prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
