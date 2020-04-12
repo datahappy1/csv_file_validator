@@ -1,84 +1,116 @@
 from csv_file_validator import validation_functions
 
 
-# class TestValidation:
-#     def test_function_caller(self):
-#         pass
-#
-#     def test_validate_config_file(self):
-#         pass
-#
-#     def test_get_validated_config(self):
-#         pass
-#
-#     def test_get_config_file_metadata_items(self):
-#         pass
-#
-#     def test_get_config_file_metadata_value(self):
-#         pass
-#
-#     def test_get_config_file_validation_rules_items(self):
-#         pass
-#
-#     def test_get_config_column_validation_rules_items(self):
-#         pass
-#
-#     def test_file_read_generator(self):
-#         pass
-#
-#     def test_close_file_handler(self):
-#         pass
-#
-#     def test_validate_file(self):
-#         pass
-#
-#     def test_validate_line(self):
-#         pass
-
-
 class TestsFileLevelValidationFuncs:
+    TESTING_KWARGS = {'file_name': 'SalesJan2009_with_header_fixed_sample.csv',
+                      'file_row_count': 1000,
+                      'file_size': 10,
+                      'file_header': [
+                          "Transaction_date",
+                          "Product",
+                          "Price"
+                      ]}
+
     def test_check_file_extension(self):
-        assert validation_functions.check_file_extension(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_file_extension(**self.negative_testing_kwargs) == 1
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = 'csv'
+        assert validation_functions.check_file_extension(**TestsFileLevelValidationFuncs.TESTING_KWARGS) == 0
+
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = 'tsv'
+        assert validation_functions.check_file_extension(**TestsFileLevelValidationFuncs.TESTING_KWARGS) == 1
 
     def test_check_file_mask(self):
-        assert validation_functions.check_file_mask(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_file_mask(**self.negative_testing_kwargs) == 1
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = '.+\\d+'
+        assert validation_functions.check_file_mask(**TestsFileLevelValidationFuncs.TESTING_KWARGS) == 0
+
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = 'd+'
+        assert validation_functions.check_file_mask(**TestsFileLevelValidationFuncs.TESTING_KWARGS) == 1
 
     def test_check_file_size_range(self):
-        assert validation_functions.check_file_size_range(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_file_size_range(**self.negative_testing_kwargs) == 1
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = [0, 100]
+        assert validation_functions.check_file_size_range(**TestsFileLevelValidationFuncs.TESTING_KWARGS) == 0
+
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = [100, 150]
+        assert validation_functions.check_file_size_range(**TestsFileLevelValidationFuncs.TESTING_KWARGS) == 1
 
     def test_check_file_row_count_range(self):
-        assert validation_functions.check_file_row_count_range(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_file_row_count_range(**self.negative_testing_kwargs) == 1
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = [0, 10000]
+        assert validation_functions.check_file_row_count_range(
+            **TestsFileLevelValidationFuncs.TESTING_KWARGS) == 0
+
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = [50, 100]
+        assert validation_functions.check_file_row_count_range(
+            **TestsFileLevelValidationFuncs.TESTING_KWARGS) == 1
 
     def test_check_file_header_column_names(self):
-        assert validation_functions.check_file_header_column_names(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_file_header_column_names(**self.negative_testing_kwargs) == 1
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = ["Transaction_date",
+                                                                            "Product",
+                                                                            "Price"]
+        assert validation_functions.check_file_header_column_names(
+            **TestsFileLevelValidationFuncs.TESTING_KWARGS) == 0
+
+        TestsFileLevelValidationFuncs.TESTING_KWARGS['validation_value'] = ["wrong_col_name1",
+                                                                            "wrong_col_name2",
+                                                                            "wrong_col_name3"]
+        assert validation_functions.check_file_header_column_names(
+            **TestsFileLevelValidationFuncs.TESTING_KWARGS) == 1
 
 
 class TestLineLevelValidationFuncs:
+    TESTING_KWARGS_INT_COLUMN = {'column': 'Price',
+                                 'column_value': 1201}
+    TESTING_KWARGS_STR_COLUMN = {'column': 'Country',
+                                 'column_value': 'United States'}
+
     def test_check_column_allow_data_type(self):
-        assert validation_functions.check_column_allow_data_type(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_column_allow_data_type(**self.negative_testing_kwargs) == 1
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = 'int'
+        assert validation_functions.check_column_allow_data_type(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 0
+
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = 'datetime'
+        assert validation_functions.check_column_allow_data_type(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 1
 
     def test_check_column_allow_numeric_value_range(self):
-        assert validation_functions.check_column_allow_numeric_value_range(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_column_allow_numeric_value_range(**self.negative_testing_kwargs) == 1
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = [0, 2000]
+        assert validation_functions.check_column_allow_numeric_value_range(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 0
+
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = [5000, 10000]
+        assert validation_functions.check_column_allow_numeric_value_range(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 1
 
     def test_check_column_allow_fixed_value_list(self):
-        assert validation_functions.check_column_allow_fixed_value_list(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_column_allow_fixed_value_list(**self.negative_testing_kwargs) == 1
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = [1201, 1202]
+        assert validation_functions.check_column_allow_fixed_value_list(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 0
+
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = [3000, 3001]
+        assert validation_functions.check_column_allow_fixed_value_list(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 1
 
     def test_check_column_allow_fixed_value(self):
-        assert validation_functions.check_column_allow_fixed_value(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_column_allow_fixed_value(**self.negative_testing_kwargs) == 1
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = 1201
+        assert validation_functions.check_column_allow_fixed_value(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 0
+
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = 9999
+        assert validation_functions.check_column_allow_fixed_value(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 1
 
     def test_check_column_allow_substring(self):
-        assert validation_functions.check_column_allow_substring(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_column_allow_substring(**self.negative_testing_kwargs) == 1
+        TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN['validation_value'] = 'xUnited Statesx'
+        assert validation_functions.check_column_allow_substring(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN) == 0
+
+        TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN['validation_value'] = 'xxyz'
+        assert validation_functions.check_column_allow_substring(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN) == 1
 
     def test_check_column_allow_regex(self):
-        assert validation_functions.check_column_allow_regex(**self.positive_testing_kwargs) == 0
-        assert validation_functions.check_column_allow_regex(**self.negative_testing_kwargs) == 1
+        TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN['validation_value'] = '[a-zA-Z].+'
+        assert validation_functions.check_column_allow_regex(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN) == 0
+
+        TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN['validation_value'] = '[A-D]'
+        assert validation_functions.check_column_allow_regex(
+            **TestLineLevelValidationFuncs.TESTING_KWARGS_STR_COLUMN) == 1

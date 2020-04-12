@@ -22,6 +22,7 @@ def validation_runner(file_name, config):
 
     validation_file_obj = ValidateFile(config, file_name)
 
+    file_level_failed_validations_counter = 0
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
     logger.info(f'Found {file_level_validations_count} file level validations')
     if file_level_validations_count:
@@ -29,11 +30,11 @@ def validation_runner(file_name, config):
         file_level_failed_validations_counter = validation_file_obj.validate_file()
         logger.info(f'Evaluation of file validation rules finished')
 
+    column_level_failed_validations_counter = 0
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
     logger.info(f'Found {column_level_validations_count} column level validations')
     if column_level_validations_count:
         logger.info(f'Evaluation of column validation rules starting')
-        column_level_failed_validations_counter = 0
         try:
             for idx, line in validation_file_obj.file_read_generator():
                 _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
@@ -47,9 +48,9 @@ def validation_runner(file_name, config):
                         f'{column_level_failed_validations_counter} failed column level validations')
 
         except InvalidLineColumnCountException as ColCountErr:
-            logger.error(f'File {file} cannot be validated, column count is not consistent, {ColCountErr}')
+            logger.error(f'File {file_name} cannot be validated, column count is not consistent, {ColCountErr}')
         except InvalidConfigException as ConfErr:
-            logger.error(f'File {file} cannot be validated, config is not consistent with the file content,  {ConfErr}')
+            logger.error(f'File {file_name} cannot be validated, config is not consistent with the file content,  {ConfErr}')
 
     ValidateFile.close_file_handler(validation_file_obj)
 

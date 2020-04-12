@@ -86,10 +86,8 @@ def check_file_size_range(**kwargs):
     :param kwargs:
     :return:
     """
-    file_size = os.path.getsize(kwargs.get('file_name')) / 1024 / 1024
-
     if kwargs.get('validation_value')[1] \
-            >= file_size \
+            >= kwargs.get('file_size') \
             >= kwargs.get('validation_value')[0]:
         return 0
     else:
@@ -132,21 +130,17 @@ def check_column_allow_data_type(**kwargs):
     :param kwargs:
     :return:
     """
-    try:
-        if kwargs.get("validation_value") == "str":
-            str(kwargs.get("column_value"))
-        elif kwargs.get("validation_value") == "int":
-            int(kwargs.get("column_value"))
-        elif kwargs.get("validation_value") == "float":
-            float(kwargs.get("column_value"))
-        elif kwargs.get("validation_value") == "datetime":
-            parser.parse(kwargs.get("column_value"))
-        else:
-            raise NotImplementedError
-        return 0
-
-    except (TypeError, ValueError):
-        raise
+    if kwargs.get("validation_value") == "str":
+        str(kwargs.get("column_value"))
+    elif kwargs.get("validation_value") == "int":
+        int(kwargs.get("column_value"))
+    elif kwargs.get("validation_value") == "float":
+        float(kwargs.get("column_value"))
+    elif kwargs.get("validation_value") == "datetime":
+        parser.parse(kwargs.get("column_value"))
+    else:
+        return 1
+    return 0
 
 
 @logging_decorator
@@ -157,16 +151,12 @@ def check_column_allow_numeric_value_range(**kwargs):
     :param kwargs:
     :return:
     """
-    try:
-        if kwargs.get("validation_value")[0] \
-                <= int(kwargs.get("column_value")) \
-                <= kwargs.get("validation_value")[1]:
-            return 0
-        else:
-            return 1
-
-    except ValueError:
-        raise
+    if kwargs.get("validation_value")[0] \
+            <= int(kwargs.get("column_value")) \
+            <= kwargs.get("validation_value")[1]:
+        return 0
+    else:
+        return 1
 
 
 @logging_decorator

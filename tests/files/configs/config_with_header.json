@@ -2,10 +2,11 @@
   "file_metadata": {
     "file_value_separator": ",",
     "file_row_terminator": "\n",
-    "file_has_header": true
+    "file_has_header": true,
+    "file_value_quote_char": "\""
   },
   "file_validation_rules": {
-    "file_name_file_mask": "SalesJ",
+    "file_name_file_mask": ".+\\d+",
     "file_extension": "csv",
     "file_header_column_names": [
       "Transaction_date",
@@ -35,11 +36,12 @@
       "allow_data_type": "datetime"
     },
     "Country": {
-      "allow_data_type": "str"
+      "allow_data_type": "str",
+      "allow_regex":"[a-zA-Z].+"
     },
     "Price": {
       "allow_numeric_value_range": [
-        1000,
+        100,
         100000
       ],
       "allow_data_type": "int"

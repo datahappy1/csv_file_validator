@@ -1,5 +1,6 @@
 import logging
 import csv
+import os
 from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
@@ -51,10 +52,16 @@ class SetupValidation:
         if not self.config.get('file_metadata'):
             raise InvalidConfigException('config file missing metadata object')
 
+        if not self.config.get('file_metadata').get('file_value_separator') or \
+                not self.config.get('file_metadata').get('file_row_terminator') or \
+                not self.config.get('file_metadata').get('file_has_header') in [True, False]:
+            raise InvalidConfigException('config file metadata object not containing all mandatory keys')
+
         if not self.config.get('file_validation_rules') and \
                 not self.config.get('column_validation_rules'):
             raise InvalidConfigException('config file missing file_validation_rules object and '
                                          'column_validation_rules object')
+
         return True
 
     def get_validated_config(self) -> dict:
@@ -89,7 +96,10 @@ class SetupValidation:
         method for returning file validation rules configuration items
         :return:
         """
-        return {k: v for k, v in self.config.get('file_validation_rules').items()}
+        try:
+            return {k: v for k, v in self.config.get('file_validation_rules').items()}
+        except AttributeError:
+            return {}
 
     def get_config_column_validation_rules_all_items(self) -> dict:
         """
@@ -97,7 +107,10 @@ class SetupValidation:
         :param column:
         :return:
         """
-        return {k: v for k, v in self.config.get('column_validation_rules').items()}
+        try:
+            return {k: v for k, v in self.config.get('column_validation_rules').items()}
+        except AttributeError:
+            return {}
 
     def get_validated_config_column_validation_rules_items(self, columns) -> dict:
         """
@@ -121,7 +134,8 @@ class ValidateFile(SetupValidation):
         self.file_handler = open(file, mode='r', encoding='utf8')
         self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
-        self.file_value_quoting = self._get_config_file_metadata_value('file_value_quoting')
+        self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
+        self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
 
         if self._get_config_file_metadata_value('file_has_header'):
             self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
@@ -138,7 +152,7 @@ class ValidateFile(SetupValidation):
             self.first_data_row_control_length = len(self.file_handler.readline()
                                                      .split(self.file_value_separator))
             self.column_level_validations_from_file = \
-                [x for x in range(0, self.first_data_row_control_length)]
+                [str(x) for x in range(0, self.first_data_row_control_length)]
 
         # adding +1 because we already read the first file row while setting
         # the self.first_data_row_control_length
@@ -184,11 +198,11 @@ class ValidateFile(SetupValidation):
         :return:
         """
         _int_row_counter = 0
-        reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=self.file_value_quoting)
-        for row_index, row in enumerate(reader):
+        reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=self.file_value_quote_char)
+        for row in reader:
             _int_row_counter += 1
             if len(row) != self.first_data_row_control_length:
-                raise InvalidLineColumnCountException(f'row #:{row_index} , row line: {row}')
+                raise InvalidLineColumnCountException(f'row #:{_int_row_counter} , row line: {row}')
 
             if self.file_header:
                 # if file contains header, yield row number and column names with values
@@ -227,6 +241,7 @@ class ValidateFile(SetupValidation):
                                                                          'file_handler': self.file_handler,
                                                                          'file_header': self.file_header,
                                                                          'file_row_count': self.file_row_count,
+                                                                         'file_size': self.file_size,
                                                                          'validation_value': validation_value}
                                                                       )
         return file_level_validations_fail_count
