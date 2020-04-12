@@ -166,22 +166,23 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 ```
 
 #### how to install & run:
-- ideally create and activate a `virtual environment` or `pipenv`
-- install dependencies from `requirements.txt`
-- Set PYTHONPATH , from Windows CMD for example set PYTHONPATH=%PYTHONPATH%;C:\csv_file_validator
-- run using a command `python3 C:\csv_file_validator\csv_file_validator\__main__.py`
+- ideally create and activate a `virtual environment` or `pipenv` in order to safely install dependencies from `requirements.txt` using `pip install -r requirements.txt`
+- Set PYTHONPATH , from Windows CMD for example `set PYTHONPATH=%PYTHONPATH%;C:\csv_file_validator`
+- run using a command for example: `python C:\csv_file_validator\csv_file_validator\__main__.py -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_fixed.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
 
-- for defining regex patterns in regex validation rules, check https://regex101.com/
+##### arguments needed:
+- `-fl` <str: mandatory> file location or folder location in case you need to validate multiple files
+- `-cfg` <str: mandatory> configuration file location or directly your config json 
 
 #### how to add custom validation rule:
 - prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
 ```python
 @logging_decorator 
 def my_validation_function(kwargs):
-    if kwargs.get('validation_value') == 'a': # your validation condition
+    if kwargs.get('validation_value') == 'a': # your validation condition success returns 0
         return 0
-    else:
-        return 1
+    # your validation condition fail returns 1     
+    return 1
 ```
 - this function has to return 0 on successful validation, 1 on a failed validation
 - add your function to the registered validation keys - functions mapping in `/csv_file_validator/validation.py` in the `function_caller` static method like:
@@ -191,5 +192,5 @@ def my_validation_function(kwargs):
         }
  
  - now you can use `my_new_function` in your config json file for validations
- 
+ - for defining regex patterns in regex validation rules, check https://regex101.com/
  

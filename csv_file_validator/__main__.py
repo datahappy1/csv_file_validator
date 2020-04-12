@@ -1,3 +1,6 @@
+"""
+main module
+"""
 import os
 import json
 import logging
@@ -7,50 +10,58 @@ from csv_file_validator.exceptions import InvalidConfigException, InvalidLineCol
     InvalidFileLocationException
 
 # set logging levels for main function console output
-logging_level = logging.DEBUG
-logging.basicConfig(level=logging_level)
-logger = logging.getLogger(__name__)
+LOGGING_LEVEL = logging.DEBUG
+logging.basicConfig(level=LOGGING_LEVEL)
+LOGGER = logging.getLogger(__name__)
 
 
 def validation_runner(file_name, config):
-    logger.info(f'Validation of {file_name} started')
+    """
+    function for the validation run
+    :param file_name:
+    :param config:
+    :return:
+    """
+    LOGGER.info(f'Validation of {file_name} started')
 
     validation_obj = SetupValidation(config)
     validation_obj.get_validated_config()
 
-    logger.info(f'Validation config initiated and validated')
+    LOGGER.info('Validation config initiated and validated')
 
     validation_file_obj = ValidateFile(config, file_name)
 
     file_level_failed_validations_counter = 0
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
-    logger.info(f'Found {file_level_validations_count} file level validations')
+    LOGGER.info(f'Found {file_level_validations_count} file level validations')
     if file_level_validations_count:
-        logger.info(f'Evaluation of file validation rules starting')
+        LOGGER.info('Evaluation of file validation rules starting')
         file_level_failed_validations_counter = validation_file_obj.validate_file()
-        logger.info(f'Evaluation of file validation rules finished')
+        LOGGER.info('Evaluation of file validation rules finished')
 
     column_level_failed_validations_counter = 0
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
-    logger.info(f'Found {column_level_validations_count} column level validations')
+    LOGGER.info(f'Found {column_level_validations_count} column level validations')
     if column_level_validations_count:
-        logger.info(f'Evaluation of column validation rules starting')
+        LOGGER.info('Evaluation of column validation rules starting')
         try:
             for idx, line in validation_file_obj.file_read_generator():
-                _all_failed_validations_counter = ValidateFile.validate_line_values(validation_file_obj,
-                                                                                    line, idx)
+                column_level_failed_validations_counter += \
+                    ValidateFile.validate_line_values(validation_file_obj, line, idx)
 
-                column_level_failed_validations_counter += _all_failed_validations_counter
+            LOGGER.info('Evaluation of column validation rules finished')
+            LOGGER.info(f'Validation of {file_name} finished with: '
+                        f'{file_level_failed_validations_counter} '
+                        f'failed file level validations ,'
+                        f'{column_level_failed_validations_counter} '
+                        f'failed column level validations')
 
-            logger.info(f'Evaluation of column validation rules finished')
-            logger.info(f'Validation of {file_name} finished with: '
-                        f'{file_level_failed_validations_counter} failed file level validations ,'
-                        f'{column_level_failed_validations_counter} failed column level validations')
-
-        except InvalidLineColumnCountException as ColCountErr:
-            logger.error(f'File {file_name} cannot be validated, column count is not consistent, {ColCountErr}')
-        except InvalidConfigException as ConfErr:
-            logger.error(f'File {file_name} cannot be validated, config is not consistent with the file content,  {ConfErr}')
+        except InvalidLineColumnCountException as col_count_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'column count is not consistent, {col_count_err}')
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'config is not consistent with the file content, {conf_err}')
 
     ValidateFile.close_file_handler(validation_file_obj)
 
@@ -79,7 +90,8 @@ def prepare_args():
     elif os.path.isfile(_parsed_file_loc):
         parsed_file_loc_list = [_parsed_file_loc]
     else:
-        raise InvalidFileLocationException(f"Could not load file(s) {_parsed_file_loc} for validation")
+        raise InvalidFileLocationException(f"Could not load file(s) {_parsed_file_loc} "
+                                           f"for validation")
 
     _parsed_config = parsed.configfile
     parsed_config = None
@@ -88,25 +100,28 @@ def prepare_args():
         with open(_parsed_config, mode='r') as json_file:
             try:
                 parsed_config = json.load(json_file)
-            except json.JSONDecodeError as jsonDecodeErr:
-                raise InvalidConfigException(f"Could not load config - valid file, JSON decode error: {jsonDecodeErr}")
-            except Exception as Exc:
-                raise InvalidConfigException(f"Could not load config - valid file, general exception: {Exc}")
+            except json.JSONDecodeError as json_decode_err:
+                raise InvalidConfigException(f"Could not load config - valid file, "
+                                             f"JSON decode error: {json_decode_err}")
+            except Exception as exc:
+                raise InvalidConfigException(f"Could not load config - valid file, "
+                                             f"general exception: {exc}")
     else:
         try:
             json.loads(_parsed_config)
             parsed_config = _parsed_config
-        except json.JSONDecodeError as jsonDecodeErr:
-            raise InvalidConfigException(
-                f"Could not load config - not a valid file, JSON decode error: {jsonDecodeErr}")
-        except Exception as Exc:
-            raise InvalidConfigException(f"Could not load config - not a valid file, general exception: {Exc}")
+        except json.JSONDecodeError as json_decode_err:
+            raise InvalidConfigException(f"Could not load config - not a valid JSON, "
+                                         f"JSON decode error: {json_decode_err}")
+        except Exception as exc:
+            raise InvalidConfigException(f"Could not load config - not a valid JSON, "
+                                         f"general exception: {exc}")
 
     return {'file_loc': parsed_file_loc_list,
             'config': parsed_config}
 
 
 if __name__ == '__main__':
-    prepared_args = prepare_args()
-    for file in prepared_args['file_loc']:
-        validation_runner(file, prepared_args['config'])
+    PREPARED_ARGS = prepare_args()
+    for file in PREPARED_ARGS['file_loc']:
+        validation_runner(file, PREPARED_ARGS['config'])

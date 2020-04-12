@@ -1,3 +1,8 @@
+"""
+exceptions module
+"""
+
+
 class InvalidFileLocationException(Exception):
     """
     Invalid file location Exception custom exception type

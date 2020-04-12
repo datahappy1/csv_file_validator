@@ -1,3 +1,6 @@
+"""
+validation module
+"""
 import logging
 import csv
 import os
@@ -5,7 +8,7 @@ from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class SetupValidation:
@@ -38,8 +41,6 @@ class SetupValidation:
         for func_name, func in attribute_func_map.items():
             if func_name == attribute:
                 return func(**kwargs)
-        else:
-            return None
 
     def __init__(self, config):
         self.config = config
@@ -55,7 +56,8 @@ class SetupValidation:
         if not self.config.get('file_metadata').get('file_value_separator') or \
                 not self.config.get('file_metadata').get('file_row_terminator') or \
                 not self.config.get('file_metadata').get('file_has_header') in [True, False]:
-            raise InvalidConfigException('config file metadata object not containing all mandatory keys')
+            raise InvalidConfigException('config file metadata object not containing '
+                                         'all mandatory keys')
 
         if not self.config.get('file_validation_rules') and \
                 not self.config.get('column_validation_rules'):
@@ -69,8 +71,9 @@ class SetupValidation:
         method for returning a validated configuration
         :return:
         """
-        self._validate_config_file()
-        return self.config
+        if self._validate_config_file():
+            return self.config
+        return {}
 
     def _get_config_file_metadata_all_items(self) -> dict:
         """
@@ -79,17 +82,18 @@ class SetupValidation:
         """
         return self.config.get('file_metadata').items()
 
-    def _get_config_file_metadata_value(self, metadata_value) -> Union[None, list]:
+    def _get_config_file_metadata_value(self, metadata_value) -> Union[None, str, bool]:
         """
         method for returning file_metadata configuration item
         :param metadata_value:
         :return:
         """
-        try:
-            return [v for k, v in self._get_config_file_metadata_all_items() if k == metadata_value][0]
-        except IndexError:
-            logger.info(f'Cannot find {metadata_value} in config, using {metadata_value}=None')
-            return None
+        metadata_item = [v for k, v in self._get_config_file_metadata_all_items()
+                         if k == metadata_value]
+
+        if metadata_item:
+            return metadata_item[0]
+        return None
 
     def get_config_file_validation_rules_all_items(self) -> dict:
         """
@@ -198,7 +202,9 @@ class ValidateFile(SetupValidation):
         :return:
         """
         _int_row_counter = 0
-        reader = csv.reader(self.file_handler, delimiter=self.file_value_separator, quotechar=self.file_value_quote_char)
+        reader = csv.reader(self.file_handler,
+                            delimiter=self.file_value_separator,
+                            quotechar=self.file_value_quote_char)
         for row in reader:
             _int_row_counter += 1
             if len(row) != self.first_data_row_control_length:
@@ -208,8 +214,9 @@ class ValidateFile(SetupValidation):
                 # if file contains header, yield row number and column names with values
                 # row number,{(column name 1, value), (column name 2),..}
                 # or if the file header already passed through the generator,
-                # yield such row value to the validations to capture erroneous files having multiple headers
-                # as these header values should not pass the validations
+                # yield such row value to the validations to capture erroneous
+                # files having multiple headers as these header values
+                # should not pass the validations
                 if [x for x in self.file_header] != row or _int_row_counter > 1:
                     yield _int_row_counter, dict(zip(self.file_header, row))
                 else:
@@ -236,14 +243,15 @@ class ValidateFile(SetupValidation):
         file_level_validations_fail_count = 0
 
         for validation, validation_value in self.file_level_validations.items():
+            kwargs = {'file_name': self.file_name,
+                      'file_handler': self.file_handler,
+                      'file_header': self.file_header,
+                      'file_row_count': self.file_row_count,
+                      'file_size': self.file_size,
+                      'validation_value': validation_value}
+
             file_level_validations_fail_count += self.function_caller(validation,
-                                                                      **{'file_name': self.file_name,
-                                                                         'file_handler': self.file_handler,
-                                                                         'file_header': self.file_header,
-                                                                         'file_row_count': self.file_row_count,
-                                                                         'file_size': self.file_size,
-                                                                         'validation_value': validation_value}
-                                                                      )
+                                                                      **kwargs)
         return file_level_validations_fail_count
 
     def validate_line_values(self, line, idx):
@@ -260,7 +268,8 @@ class ValidateFile(SetupValidation):
             raise InvalidConfigException('Column validations set in the config, '
                                          'but none of the related columns found the file')
 
-        if len(self.column_level_validations) < len(self.get_config_column_validation_rules_all_items()):
+        if len(self.column_level_validations) < \
+                len(self.get_config_column_validation_rules_all_items()):
             raise InvalidConfigException('Column validations set in the config, '
                                          'but not all related columns found the file')
 
@@ -273,11 +282,12 @@ class ValidateFile(SetupValidation):
 
                 # looping through validation items
                 for validation, validation_value in validations.items():
+                    kwargs = {'column': column,
+                              'validation_value': validation_value,
+                              'column_value': column_value,
+                              'row_number': idx}
+
                     column_level_validations_fail_count += self.function_caller(validation,
-                                                                                **{'column': column,
-                                                                                   'validation_value': validation_value,
-                                                                                   'column_value': column_value,
-                                                                                   'row_number': idx}
-                                                                                )
+                                                                                **kwargs)
 
         return column_level_validations_fail_count

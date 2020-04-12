@@ -1,3 +1,6 @@
+"""
+validation_functions module
+"""
 import os
 import re
 import sys
@@ -5,28 +8,11 @@ import logging
 import functools
 from dateutil import parser
 
-logger = logging.getLogger(__name__)
-currentFuncName = lambda n=0: sys._getframe(n + 1).f_code.co_name
+LOGGER = logging.getLogger(__name__)
+CURRENT_FUNC_NAME = lambda n=0: sys._getframe(n + 1).f_code.co_name
 
 
-def logging_decorator(func):
-    @functools.wraps(func)
-    def wrapper_decorator(**kwargs):
-        try:
-            validation_result = func(**kwargs)
-        except Exception as Exc:
-            validation_result = 1
-            kwargs['Exception'] = Exc
-
-        if validation_result != 0:
-            _get_logged_error(func_name=func.__name__, **kwargs)
-
-        return validation_result
-
-    return wrapper_decorator
-
-
-def _get_logged_error(func_name, **kwargs) -> logger:
+def _get_logged_error(func_name, **kwargs) -> LOGGER:
     """
     function responsible for handling the logging of the failed validations
     :param func_name:
@@ -44,7 +30,30 @@ def _get_logged_error(func_name, **kwargs) -> logger:
         logged_string += f' - Column value: {kwargs["column_value"]}'
     if kwargs.get("Exception"):
         logged_string += f' - Exception: {kwargs["Exception"]}'
-    logger.error(logged_string)
+
+    LOGGER.error(logged_string)
+
+
+def logging_decorator(func):
+    """
+    logging decorator for validation functions
+    :param func:
+    :return:
+    """
+    @functools.wraps(func)
+    def wrapper_decorator(**kwargs):
+        try:
+            validation_result = func(**kwargs)
+        except Exception as exc:
+            validation_result = 1
+            kwargs['Exception'] = exc
+
+        if validation_result != 0:
+            _get_logged_error(func_name=func.__name__, **kwargs)
+
+        return validation_result
+
+    return wrapper_decorator
 
 
 @logging_decorator
@@ -56,8 +65,7 @@ def check_file_extension(**kwargs):
     """
     if os.path.splitext(kwargs.get('file_name'))[1][1:] == kwargs.get('validation_value'):
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -74,8 +82,7 @@ def check_file_mask(**kwargs):
 
     if result:
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -90,8 +97,7 @@ def check_file_size_range(**kwargs):
             >= kwargs.get('file_size') \
             >= kwargs.get('validation_value')[0]:
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -106,8 +112,7 @@ def check_file_row_count_range(**kwargs):
             >= kwargs.get('file_row_count') \
             >= kwargs.get('validation_value')[0]:
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -119,8 +124,7 @@ def check_file_header_column_names(**kwargs):
     """
     if kwargs.get('validation_value') == kwargs.get('file_header'):
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -132,15 +136,17 @@ def check_column_allow_data_type(**kwargs):
     """
     if kwargs.get("validation_value") == "str":
         str(kwargs.get("column_value"))
-    elif kwargs.get("validation_value") == "int":
+        return 0
+    if kwargs.get("validation_value") == "int":
         int(kwargs.get("column_value"))
-    elif kwargs.get("validation_value") == "float":
+        return 0
+    if kwargs.get("validation_value") == "float":
         float(kwargs.get("column_value"))
-    elif kwargs.get("validation_value") == "datetime":
+        return 0
+    if kwargs.get("validation_value") == "datetime":
         parser.parse(kwargs.get("column_value"))
-    else:
-        return 1
-    return 0
+        return 0
+    return 1
 
 
 @logging_decorator
@@ -155,8 +161,7 @@ def check_column_allow_numeric_value_range(**kwargs):
             <= int(kwargs.get("column_value")) \
             <= kwargs.get("validation_value")[1]:
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -168,8 +173,7 @@ def check_column_allow_fixed_value_list(**kwargs):
     """
     if kwargs.get("column_value") in [x for x in kwargs.get("validation_value")]:
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -181,8 +185,7 @@ def check_column_allow_fixed_value(**kwargs):
     """
     if kwargs.get("column_value") == kwargs.get("validation_value"):
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -194,8 +197,7 @@ def check_column_allow_substring(**kwargs):
     """
     if kwargs.get("column_value") in kwargs.get("validation_value"):
         return 0
-    else:
-        return 1
+    return 1
 
 
 @logging_decorator
@@ -209,5 +211,4 @@ def check_column_allow_regex(**kwargs):
 
     if result:
         return 0
-    else:
-        return 1
+    return 1
