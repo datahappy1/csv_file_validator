@@ -37,7 +37,9 @@
     },
     "Country": {
       "allow_data_type": "str",
-      "allow_regex":"[a-zA-Z].+"
+      "allow_regex":"[a-zA-Z].+",
+      "allow_fixed_value": "United States",
+      "allow_fixed_value_list": ["United States", "United Kingdom"]
     },
     "Price": {
       "allow_numeric_value_range": [
