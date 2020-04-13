@@ -38,7 +38,7 @@ def validation_runner(file_name, config):
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
 
     LOGGER.info(f'Found {file_level_validations_count} file level validations')
-
+    #TODO validate file level validation on a file with only a header
     if file_level_validations_count:
         LOGGER.info('Evaluation of file validation rules starting')
         try:
