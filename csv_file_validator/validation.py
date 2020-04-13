@@ -243,15 +243,15 @@ class ValidateFile(SetupValidation):
         file_level_validations_fail_count = 0
 
         for validation, validation_value in self.file_level_validations.items():
-            _kwargs = {'file_name': self.file_name,
-                       'file_handler': self.file_handler,
-                       'file_header': self.file_header,
-                       'file_row_count': self.file_row_count,
-                       'file_size': self.file_size,
-                       'validation_value': validation_value}
 
-            file_level_validations_fail_count += self.function_caller(validation,
-                                                                      **_kwargs)
+            file_level_validations_fail_count += \
+                self.function_caller(validation,**{'file_name': self.file_name,
+                                                   'file_handler': self.file_handler,
+                                                   'file_header': self.file_header,
+                                                   'file_row_count': self.file_row_count,
+                                                   'file_size': self.file_size,
+                                                   'validation_value': validation_value})
+
         return file_level_validations_fail_count
 
     def validate_line_values(self, line, idx):
@@ -282,12 +282,11 @@ class ValidateFile(SetupValidation):
 
                 # looping through validation items
                 for validation, validation_value in validations.items():
-                    _kwargs = {'column': column,
-                               'validation_value': validation_value,
-                               'column_value': column_value,
-                               'row_number': idx}
 
-                    column_level_validations_fail_count += self.function_caller(validation,
-                                                                                **_kwargs)
+                    column_level_validations_fail_count += \
+                        self.function_caller(validation,**{'column': column,
+                                                           'validation_value': validation_value,
+                                                           'column_value': column_value,
+                                                           'row_number': idx})
 
         return column_level_validations_fail_count

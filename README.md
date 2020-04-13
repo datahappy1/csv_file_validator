@@ -2,7 +2,7 @@
 ### Python 3+ CSV file validation tool 
 
 #### what this tool can do:
-The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema and a file path of the file to be validated, or a folder path to validate multiple files in one run against one provided validation schema.  
+The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema as a json file and a file path of the file to be validated, or a folder path to validate multiple files in one run against one provided validation schema.  
 
 ##### validation schema:
 Validation schema is a json file. Let's have a closer look at a real life example file.
@@ -168,11 +168,11 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 #### how to install & run:
 - ideally create and activate a `virtual environment` or `pipenv` in order to safely install dependencies from `requirements.txt` using `pip install -r requirements.txt`
 - Set PYTHONPATH , from Windows CMD for example `set PYTHONPATH=%PYTHONPATH%;C:\csv_file_validator`
-- run using a command for example: `python C:\csv_file_validator\csv_file_validator\__main__.py -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_fixed.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
+- run using a command for example: `python C:\csv_file_validator\csv_file_validator -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_fixed.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
 
 ##### arguments needed:
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
-- `-cfg` <string: mandatory> configuration file location absolute path
+- `-cfg` <string: mandatory> configuration json file location absolute path
 
 #### how to add custom validation rule:
 - prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
