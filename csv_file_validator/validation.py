@@ -41,6 +41,9 @@ class SetupValidation:
         for func_name, func in attribute_func_map.items():
             if func_name == attribute:
                 return func(**kwargs)
+        else:
+            raise InvalidConfigException(f'function {attribute} not found in '
+                                         f'function_caller attribute_func_map')
 
     def __init__(self, config):
         self.config = config
