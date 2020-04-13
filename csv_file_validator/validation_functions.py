@@ -174,7 +174,7 @@ def check_column_allow_fixed_value_list(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get("column_value") in [x for x in kwargs.get("validation_value")]:
+    if kwargs.get("column_value") in kwargs.get("validation_value"):
         return 0
     return 1
 

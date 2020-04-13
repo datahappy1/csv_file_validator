@@ -107,15 +107,7 @@ def prepare_args():
                 raise InvalidConfigException(f"Could not load config - valid file, "
                                              f"general exception: {exc}")
     else:
-        try:
-            json.loads(_parsed_config)
-            parsed_config = _parsed_config
-        except json.JSONDecodeError as json_decode_err:
-            raise InvalidConfigException(f"Could not load config - not a valid JSON, "
-                                         f"JSON decode error: {json_decode_err}")
-        except Exception as exc:
-            raise InvalidConfigException(f"Could not load config - not a valid JSON, "
-                                         f"general exception: {exc}")
+        raise InvalidConfigException("Could not load config file - not a valid file")
 
     return {'file_loc': parsed_file_loc_list,
             'config': parsed_config}

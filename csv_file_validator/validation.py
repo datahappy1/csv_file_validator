@@ -101,7 +101,7 @@ class SetupValidation:
         :return:
         """
         try:
-            return {k: v for k, v in self.config.get('file_validation_rules').items()}
+            return self.config.get('file_validation_rules')
         except AttributeError:
             return {}
 
@@ -112,7 +112,7 @@ class SetupValidation:
         :return:
         """
         try:
-            return {k: v for k, v in self.config.get('column_validation_rules').items()}
+            return self.config.get('column_validation_rules')
         except AttributeError:
             return {}
 
@@ -217,7 +217,7 @@ class ValidateFile(SetupValidation):
                 # yield such row value to the validations to capture erroneous
                 # files having multiple headers as these header values
                 # should not pass the validations
-                if [x for x in self.file_header] != row or _int_row_counter > 1:
+                if self.file_header != row or _int_row_counter > 1:
                     yield _int_row_counter, dict(zip(self.file_header, row))
                 else:
                     pass
@@ -243,15 +243,15 @@ class ValidateFile(SetupValidation):
         file_level_validations_fail_count = 0
 
         for validation, validation_value in self.file_level_validations.items():
-            kwargs = {'file_name': self.file_name,
-                      'file_handler': self.file_handler,
-                      'file_header': self.file_header,
-                      'file_row_count': self.file_row_count,
-                      'file_size': self.file_size,
-                      'validation_value': validation_value}
+            _kwargs = {'file_name': self.file_name,
+                       'file_handler': self.file_handler,
+                       'file_header': self.file_header,
+                       'file_row_count': self.file_row_count,
+                       'file_size': self.file_size,
+                       'validation_value': validation_value}
 
             file_level_validations_fail_count += self.function_caller(validation,
-                                                                      **kwargs)
+                                                                      **_kwargs)
         return file_level_validations_fail_count
 
     def validate_line_values(self, line, idx):
@@ -282,12 +282,12 @@ class ValidateFile(SetupValidation):
 
                 # looping through validation items
                 for validation, validation_value in validations.items():
-                    kwargs = {'column': column,
-                              'validation_value': validation_value,
-                              'column_value': column_value,
-                              'row_number': idx}
+                    _kwargs = {'column': column,
+                               'validation_value': validation_value,
+                               'column_value': column_value,
+                               'row_number': idx}
 
                     column_level_validations_fail_count += self.function_caller(validation,
-                                                                                **kwargs)
+                                                                                **_kwargs)
 
         return column_level_validations_fail_count

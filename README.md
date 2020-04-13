@@ -172,7 +172,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 
 ##### arguments needed:
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
-- `-cfg` <string: mandatory> configuration file location or you can input directly config json as a string 
+- `-cfg` <string: mandatory> configuration file location absolute path
 
 #### how to add custom validation rule:
 - prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
