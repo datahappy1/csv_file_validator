@@ -44,7 +44,8 @@
         100,
         100000
       ],
-      "allow_data_type": "int"
+      "allow_data_type": "int",
+      "allow_fixed_value": 1200
     }
   }
 }

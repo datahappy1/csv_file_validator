@@ -2,7 +2,7 @@
 ### Python 3+ CSV file validation tool 
 
 #### what this tool can do:
-The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema as a json file and a file path of the file to be validated, or a folder path to validate multiple files in one run against one provided validation schema.  
+The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema as a json file and a file path of the file to be validated, or a folder path to validate multiple files in one run against the provided validation schema.  
 
 ##### validation schema:
 Validation schema is a json file. Let's have a closer look at a real life example file.
@@ -49,7 +49,7 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
       },
       "Price":{
          "allow_numeric_value_range":[0, 100000],
-         "allow_fixed_value":"1000",
+         "allow_fixed_value":1000,
          "allow_data_type":"int"
       }
    }
@@ -115,12 +115,13 @@ If validating a file that has a header, we have to set the `file_has_header` key
             "www"
          ],
          "allow_regex":"[a-zA-Z].+",
-         "allow_substring":"",
-         "allow_data_type":"str"
+         "allow_substring":"Norwayz",
+         "allow_data_type":"str",
+         "allow_fixed_value":"www"
       },
       "Price":{
          "allow_numeric_value_range":[0, 100000],
-         "allow_fixed_value":"1000",
+         "allow_fixed_value":1000,
          "allow_data_type":"int"
       }
    }
@@ -158,12 +159,27 @@ If validating a file that has no header, we have to set the `file_has_header` ke
       },
       "2":{
          "allow_numeric_value_range":[0, 100000],
-         "allow_fixed_value":"1000",
+         "allow_fixed_value":1000,
          "allow_data_type":"int"
       }
    }
 }
 ```
+#### validation rules:
+- File level validation rules:
+    - file_name_file_mask : checks file name matches the file mask regex pattern
+    - file_extension : checks file extension is an exact match with the provided value
+    - file_size_range : checks file size is in the range of the provided values
+    - file_row_count_range : checks file row count is in the range of the provided values
+    - file_header_column_names : checks file header is an exact match with the provided value
+- Column level validation rules:
+    - allow_data_type : checks column values are of the allowed data type
+    - allow_numeric_value_range : checks numeric column values are in the range of the provided values
+    - allow_fixed_value_list : checks column values are in the provided value list
+    - allow_regex : checks column values match the provided regex pattern
+    - allow_substring : checks column values have the provided value as a substring
+    - allow_fixed_value : checks column values are an exact match with the provided value
+
 
 #### how to install & run:
 - ideally create and activate a `virtual environment` or `pipenv` in order to safely install dependencies from `requirements.txt` using `pip install -r requirements.txt`
