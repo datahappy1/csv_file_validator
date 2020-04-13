@@ -123,8 +123,11 @@ class SetupValidation:
         :param columns:
         :return:
         """
-        return {k: v for k, v in self.get_config_column_validation_rules_all_items().items()
-                if k in columns}
+        try:
+            return {k: v for k, v in self.get_config_column_validation_rules_all_items().items()
+                    if k in columns}
+        except AttributeError:
+            return {}
 
 
 class ValidateFile(SetupValidation):
@@ -172,14 +175,18 @@ class ValidateFile(SetupValidation):
         function returning the count of the file level validations
         :return:
         """
-        return len(self.file_level_validations)
+        if self.file_level_validations:
+            return len(self.file_level_validations)
+        return 0
 
     def get_number_of_column_level_validations(self):
         """
         function returning the count of the column level validations
         :return:
         """
-        return len(self.column_level_validations)
+        if self.column_level_validations:
+            return len(self.column_level_validations)
+        return 0
 
     def _get_column_level_validation_items(self, col):
         """
