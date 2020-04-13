@@ -8,7 +8,7 @@ import logging
 import argparse
 from csv_file_validator.validation import SetupValidation, ValidateFile
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException, FileContainsNoRowsException
+    InvalidFileLocationException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -47,10 +47,6 @@ def validation_runner(file_name, config):
         except InvalidConfigException as conf_err:
             LOGGER.error(f'File {file_name} cannot be fully validated, '
                          f'config file has issues, {conf_err}')
-        except FileContainsNoRowsException as rows_err:
-            LOGGER.error(f'File {file_name} cannot be validated, '
-                         f'file has issues, {rows_err}')
-            raise
 
     column_level_failed_validations_counter = 0
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()

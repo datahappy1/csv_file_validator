@@ -21,7 +21,7 @@ class InvalidLineColumnCountException(Exception):
     """
 
 
-class FileContainsNoRowsException(Exception):
+class FileContentException(Exception):
     """
-    File contains no rows Exception custom exception type
+    File content Exception custom exception type
     """

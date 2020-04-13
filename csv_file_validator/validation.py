@@ -7,7 +7,7 @@ import os
 from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    FileContainsNoRowsException
+    FileContentException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -152,21 +152,34 @@ class ValidateFile(SetupValidation):
             self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
 
-            self.first_data_row_control_length = len(self.file_handler.readline()
-                                                     .split(self.file_value_separator))
+            if self.file_header == ['']:
+                raise FileContentException('File has header set to true in config '
+                                           'but has no header row')
 
+            _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
+                .split(self.file_value_separator)
+
+            if _first_row == ['']:
+                raise FileContentException('File has no row after header, this row is used '
+                                           'for file column count integrity check')
+
+            self.first_data_row_control_length = len(_first_row)
             self.column_level_validations_from_file = self.file_header
 
         else:
             self.file_header = None
 
-            self.first_data_row_control_length = len(self.file_handler.readline()
-                                                     .split(self.file_value_separator))
+            _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
+                .split(self.file_value_separator)
+
+            if _first_row == ['']:
+                raise FileContentException('File has no first row, this row is used '
+                                           'for file column count integrity check')
+
+            self.first_data_row_control_length = len(_first_row)
             self.column_level_validations_from_file = \
                 [str(x) for x in range(0, self.first_data_row_control_length)]
 
-        # adding +1 because we already read the first file row while setting
-        # the self.first_data_row_control_length
         self.file_row_count = sum(1 for line in self.file_handler) + 1
         self._reset_file_handler()
 
@@ -251,9 +264,6 @@ class ValidateFile(SetupValidation):
         the mapped validation function and process it
         :return:
         """
-        if self.file_row_count == 1:
-            raise FileContainsNoRowsException('File has no rows to validate')
-
         file_level_validations_fail_count = 0
 
         for validation, validation_value in self.file_level_validations.items():
@@ -280,12 +290,12 @@ class ValidateFile(SetupValidation):
 
         if not self.column_level_validations:
             raise InvalidConfigException('Column validations set in the config, '
-                                         'but none of the related columns found the file')
+                                         'but none of the related columns found in the file')
 
         if len(self.column_level_validations) < \
                 len(self.get_config_column_validation_rules_all_items()):
             raise InvalidConfigException('Column validations set in the config, '
-                                         'but not all related columns found the file')
+                                         'but not all related columns found in the file')
 
         # looping through column names and column values in the line items
         for column_name, column_value in line.items():
