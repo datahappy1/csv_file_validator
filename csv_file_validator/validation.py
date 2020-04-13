@@ -6,7 +6,8 @@ import csv
 import os
 from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
-from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
+from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
+    FileContainsNoRowsException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -69,14 +70,14 @@ class SetupValidation:
 
         return True
 
-    def get_validated_config(self) -> dict:
+    def get_validated_config(self) -> Union[dict, None]:
         """
         method for returning a validated configuration
         :return:
         """
         if self._validate_config_file():
             return self.config
-        return {}
+        return None
 
     def _get_config_file_metadata_all_items(self) -> dict:
         """
@@ -98,7 +99,7 @@ class SetupValidation:
             return metadata_item[0]
         return None
 
-    def get_config_file_validation_rules_all_items(self) -> dict:
+    def get_config_file_validation_rules_all_items(self) -> Union[dict, None]:
         """
         method for returning file validation rules configuration items
         :return:
@@ -106,9 +107,9 @@ class SetupValidation:
         try:
             return self.config.get('file_validation_rules')
         except AttributeError:
-            return {}
+            return None
 
-    def get_config_column_validation_rules_all_items(self) -> dict:
+    def get_config_column_validation_rules_all_items(self) -> Union[dict, None]:
         """
         method for returning column validation rules configuration items
         :param column:
@@ -117,9 +118,9 @@ class SetupValidation:
         try:
             return self.config.get('column_validation_rules')
         except AttributeError:
-            return {}
+            return None
 
-    def get_validated_config_column_validation_rules_items(self, columns) -> dict:
+    def get_validated_config_column_validation_rules_items(self, columns) -> Union[dict, None]:
         """
         method for returning column validation rules configuration items
         that are verified to be in the column names of the validated file
@@ -130,7 +131,7 @@ class SetupValidation:
             return {k: v for k, v in self.get_config_column_validation_rules_all_items().items()
                     if k in columns}
         except AttributeError:
-            return {}
+            return None
 
 
 class ValidateFile(SetupValidation):
@@ -250,6 +251,9 @@ class ValidateFile(SetupValidation):
         the mapped validation function and process it
         :return:
         """
+        if self.file_row_count == 1:
+            raise FileContainsNoRowsException('File has no rows to validate')
+
         file_level_validations_fail_count = 0
 
         for validation, validation_value in self.file_level_validations.items():

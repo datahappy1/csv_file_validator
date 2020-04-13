@@ -2,17 +2,20 @@
 main module
 """
 import os
+import sys
 import json
 import logging
 import argparse
 from csv_file_validator.validation import SetupValidation, ValidateFile
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException
+    InvalidFileLocationException, FileContainsNoRowsException
 
-# set logging levels for main function console output
+# set logging
 LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL)
 LOGGER = logging.getLogger(__name__)
+# mute traceback
+sys.tracebacklimit = 0
 
 
 def validation_runner(file_name, config):
@@ -33,15 +36,27 @@ def validation_runner(file_name, config):
 
     file_level_failed_validations_counter = 0
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
+
     LOGGER.info(f'Found {file_level_validations_count} file level validations')
+
     if file_level_validations_count:
         LOGGER.info('Evaluation of file validation rules starting')
-        file_level_failed_validations_counter = validation_file_obj.validate_file()
-        LOGGER.info('Evaluation of file validation rules finished')
+        try:
+            file_level_failed_validations_counter = validation_file_obj.validate_file()
+            LOGGER.info('Evaluation of file validation rules finished')
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'File {file_name} cannot be fully validated, '
+                         f'config file has issues, {conf_err}')
+        except FileContainsNoRowsException as rows_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'file has issues, {rows_err}')
+            raise
 
     column_level_failed_validations_counter = 0
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
+
     LOGGER.info(f'Found {column_level_validations_count} column level validations')
+
     if column_level_validations_count:
         LOGGER.info('Evaluation of column validation rules starting')
         try:

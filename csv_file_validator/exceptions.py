@@ -19,3 +19,9 @@ class InvalidLineColumnCountException(Exception):
     """
     Invalid Line Column Count Exception custom exception type
     """
+
+
+class FileContainsNoRowsException(Exception):
+    """
+    File contains no rows Exception custom exception type
+    """
