@@ -158,6 +158,7 @@ class ValidateFile(SetupValidation):
 
             _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
+
             if _first_row != ['']:
                 self.first_data_row_control_length = len(_first_row)
             else:
@@ -170,6 +171,7 @@ class ValidateFile(SetupValidation):
 
             _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
+
             if _first_row != ['']:
                 self.first_data_row_control_length = len(_first_row)
             else:
