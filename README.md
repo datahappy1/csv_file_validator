@@ -177,7 +177,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
     - allow_numeric_value_range : checks numeric column values are in the range of the provided values
     - allow_fixed_value_list : checks column values are in the provided value list
     - allow_regex : checks column values match the provided regex pattern
-    - allow_substring : checks column values have the provided value as a substring
+    - allow_substring : checks column values are a substring of the provided value 
     - allow_fixed_value : checks column values are an exact match with the provided value
 
 
