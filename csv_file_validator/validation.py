@@ -147,14 +147,12 @@ class ValidateFile(SetupValidation):
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
+        self.file_row_count = sum(1 for line in self.file_handler)
+        self._reset_file_handler()
 
         if self._get_config_file_metadata_value('file_has_header'):
             self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
-
-            if self.file_header == ['']:
-                raise FileContentException('File has header set to true in config '
-                                           'but has no header row')
 
             _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
@@ -172,18 +170,14 @@ class ValidateFile(SetupValidation):
             self.column_level_validations_from_file = \
                 [str(x) for x in range(0, self.first_data_row_control_length)]
 
-        self.file_row_count = sum(1 for line in self.file_handler)
-        if _first_row != ['']:
-            self.file_row_count += 1
-
+        # after we load the first row later used for column count integrity check,
+        # we subtract 1 from the file_row_count
+        self.file_row_count -= 1
         self._reset_file_handler()
 
         self.file_level_validations = self.get_config_file_validation_rules_all_items()
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
-
-        if self.file_row_count == 0:
-            raise FileContentException('File has no rows to validate')
 
     def get_number_of_file_level_validations(self):
         """
@@ -217,6 +211,18 @@ class ValidateFile(SetupValidation):
         :return:
         """
         self.file_handler.seek(0)
+
+    def file_content_checker(self):
+        """
+        method checking if we can validate the file based on its content
+        :return:
+        """
+        if self.file_header == ['']:
+            raise FileContentException('File has header set to true in config '
+                                       'but has no header row')
+
+        if self.file_row_count <= 0:
+            raise FileContentException('File has no rows to validate')
 
     def file_read_generator(self) -> dict:
         """

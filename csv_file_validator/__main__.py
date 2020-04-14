@@ -6,9 +6,10 @@ import sys
 import json
 import logging
 import argparse
+from csv_file_validator.settings import SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE
 from csv_file_validator.validation import SetupValidation, ValidateFile
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException
+    InvalidFileLocationException, FileContentException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -38,7 +39,7 @@ def validation_runner(file_name, config):
     file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
 
     LOGGER.info(f'Found {file_level_validations_count} file level validations')
-    #TODO validate file level validation on a file with only a header
+
     if file_level_validations_count:
         LOGGER.info('Evaluation of file validation rules starting')
         try:
@@ -47,6 +48,19 @@ def validation_runner(file_name, config):
         except InvalidConfigException as conf_err:
             LOGGER.error(f'File {file_name} cannot be fully validated, '
                          f'config file has issues, {conf_err}')
+
+    try:
+        validation_file_obj.file_content_checker()
+    except FileContentException as file_cont_exc:
+        if str(file_cont_exc) == "File has header set to true in config but has no header row":
+            LOGGER.error(file_cont_exc)
+            return 1
+        elif str(file_cont_exc) == "File has no rows to validate" \
+                and SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
+            LOGGER.info(file_cont_exc)
+            return 1
+        else:
+            pass
 
     column_level_failed_validations_counter = 0
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
