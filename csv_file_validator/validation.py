@@ -152,11 +152,17 @@ class ValidateFile(SetupValidation):
         if self._get_config_file_metadata_value('file_has_header'):
             self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
+            if self.file_header != ['']:
+                # we subtract 1 from the file_row_count because of the header row
+                self.file_row_count -= 1
 
             _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
+            if _first_row != ['']:
+                self.first_data_row_control_length = len(_first_row)
+            else:
+                self.first_data_row_control_length = 0
 
-            self.first_data_row_control_length = len(_first_row)
             self.column_level_validations_from_file = self.file_header
 
         else:
@@ -164,14 +170,14 @@ class ValidateFile(SetupValidation):
 
             _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
+            if _first_row != ['']:
+                self.first_data_row_control_length = len(_first_row)
+            else:
+                self.first_data_row_control_length = 0
 
-            self.first_data_row_control_length = len(_first_row)
             self.column_level_validations_from_file = \
                 [str(x) for x in range(0, self.first_data_row_control_length)]
 
-        # after we load the first row later used for column count integrity check,
-        # we subtract 1 from the file_row_count
-        self.file_row_count -= 1
         self._reset_file_handler()
 
         self.file_level_validations = self.get_config_file_validation_rules_all_items()
@@ -225,7 +231,7 @@ class ValidateFile(SetupValidation):
         method checking if the file has any rows (besides header row if configured)
         :return:
         """
-        if self.file_row_count <= 0:
+        if self.file_row_count == 0:
             return True
         return False
 
@@ -241,7 +247,8 @@ class ValidateFile(SetupValidation):
         for row in reader:
             _int_row_counter += 1
             if len(row) != self.first_data_row_control_length:
-                raise InvalidLineColumnCountException(f'row #:{_int_row_counter} , row line: {row}, '
+
+                raise InvalidLineColumnCountException(f'row #: {_int_row_counter}, '
                                                       f'expected column count: '
                                                       f'{self.first_data_row_control_length}, '
                                                       f'actual column count: '
