@@ -186,6 +186,8 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - Set PYTHONPATH , from Windows CMD for example `set PYTHONPATH=%PYTHONPATH%;C:\csv_file_validator`
 - run using a command for example: `python C:\csv_file_validator\csv_file_validator -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_fixed.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
 
+- in `settings.py` file, you can set the variable `SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE` to `True` or `False`, this variable drives the behavior whether the tool bypass the column level validations on a file that has no rows or not
+
 ##### arguments needed:
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
 - `-cfg` <string: mandatory> configuration json file location absolute path
