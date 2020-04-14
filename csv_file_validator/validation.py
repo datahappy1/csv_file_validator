@@ -180,11 +180,8 @@ class ValidateFile(SetupValidation):
             .split(self.file_value_separator)
 
         if _first_row != ['']:
-            self.first_data_row_control_length = len(_first_row)
-        else:
-            self.first_data_row_control_length = 0
-
-        return self.first_data_row_control_length
+            return len(_first_row)
+        return 0
 
     def get_number_of_file_level_validations(self) -> int:
         """
