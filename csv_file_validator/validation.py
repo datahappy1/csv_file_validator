@@ -6,8 +6,7 @@ import csv
 import os
 from typing import Union
 from csv_file_validator import validation_functions as validation_funcs
-from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    FileContentException
+from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -212,17 +211,23 @@ class ValidateFile(SetupValidation):
         """
         self.file_handler.seek(0)
 
-    def file_content_checker(self):
+    def file_has_empty_header(self) -> bool:
         """
         method checking if we can validate the file based on its content
         :return:
         """
         if self.file_header == ['']:
-            raise FileContentException('File has header set to true in config '
-                                       'but has no header row')
+            return True
+        return False
 
+    def file_has_no_rows(self) -> bool:
+        """
+        method checking if the file has any rows (besides header row if configured)
+        :return:
+        """
         if self.file_row_count <= 0:
-            raise FileContentException('File has no rows to validate')
+            return True
+        return False
 
     def file_read_generator(self) -> dict:
         """
@@ -236,7 +241,11 @@ class ValidateFile(SetupValidation):
         for row in reader:
             _int_row_counter += 1
             if len(row) != self.first_data_row_control_length:
-                raise InvalidLineColumnCountException(f'row #:{_int_row_counter} , row line: {row}')
+                raise InvalidLineColumnCountException(f'row #:{_int_row_counter} , row line: {row}, '
+                                                      f'expected column count: '
+                                                      f'{self.first_data_row_control_length}, '
+                                                      f'actual column count: '
+                                                      f'{len(row)}')
 
             if self.file_header:
                 # if file contains header, yield row number and column names with values
@@ -273,12 +282,12 @@ class ValidateFile(SetupValidation):
         for validation, validation_value in self.file_level_validations.items():
 
             file_level_validations_fail_count += \
-                self.function_caller(validation,**{'file_name': self.file_name,
-                                                   'file_handler': self.file_handler,
-                                                   'file_header': self.file_header,
-                                                   'file_row_count': self.file_row_count,
-                                                   'file_size': self.file_size,
-                                                   'validation_value': validation_value})
+                self.function_caller(validation, **{'file_name': self.file_name,
+                                                    'file_handler': self.file_handler,
+                                                    'file_header': self.file_header,
+                                                    'file_row_count': self.file_row_count,
+                                                    'file_size': self.file_size,
+                                                    'validation_value': validation_value})
 
         return file_level_validations_fail_count
 
@@ -312,9 +321,9 @@ class ValidateFile(SetupValidation):
                 for validation, validation_value in validations.items():
 
                     column_level_validations_fail_count += \
-                        self.function_caller(validation,**{'column': column,
-                                                           'validation_value': validation_value,
-                                                           'column_value': column_value,
-                                                           'row_number': idx})
+                        self.function_caller(validation, **{'column': column,
+                                                            'validation_value': validation_value,
+                                                            'column_value': column_value,
+                                                            'row_number': idx})
 
         return column_level_validations_fail_count

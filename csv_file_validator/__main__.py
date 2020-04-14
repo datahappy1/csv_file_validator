@@ -9,7 +9,7 @@ import argparse
 from csv_file_validator.settings import SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE
 from csv_file_validator.validation import SetupValidation, ValidateFile
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException, FileContentException
+    InvalidFileLocationException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -46,20 +46,22 @@ def validation_runner(file_name, config):
             file_level_failed_validations_counter = validation_file_obj.validate_file()
             LOGGER.info('Evaluation of file validation rules finished')
         except InvalidConfigException as conf_err:
-            LOGGER.error(f'File {file_name} cannot be fully validated, '
+            LOGGER.error(f'File {file_name} cannot be validated, '
                          f'config file has issues, {conf_err}')
+            return 1
 
-    try:
-        validation_file_obj.file_content_checker()
-    except FileContentException as file_cont_exc:
-        if str(file_cont_exc) == "File has header set to true in config but has no header row":
-            LOGGER.error(file_cont_exc)
-            return 1
-        elif str(file_cont_exc) == "File has no rows to validate" \
-                and SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
-            LOGGER.info(file_cont_exc)
-            return 1
-        else:
+    if validation_file_obj.file_has_empty_header():
+        LOGGER.error('file with header set to true in config has no header row')
+        return 1
+
+    if validation_file_obj.file_has_no_rows():
+        if SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
+            LOGGER.info('File has no rows to validate, skipping column level validations')
+            LOGGER.info(f'Validation of {file_name} finished with: '
+                        f'{file_level_failed_validations_counter} '
+                        f'failed file level validations')
+            return 0
+        if not SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
             pass
 
     column_level_failed_validations_counter = 0
@@ -79,9 +81,12 @@ def validation_runner(file_name, config):
         except InvalidLineColumnCountException as col_count_err:
             LOGGER.error(f'File {file_name} cannot be validated, '
                          f'column count is not consistent, {col_count_err}')
+            return 1
+
         except InvalidConfigException as conf_err:
             LOGGER.error(f'File {file_name} cannot be validated, '
                          f'config is not consistent with the file content, {conf_err}')
+            return 1
 
     ValidateFile.close_file_handler(validation_file_obj)
 

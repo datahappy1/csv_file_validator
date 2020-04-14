@@ -19,9 +19,3 @@ class InvalidLineColumnCountException(Exception):
     """
     Invalid Line Column Count Exception custom exception type
     """
-
-
-class FileContentException(Exception):
-    """
-    File content Exception custom exception type
-    """
