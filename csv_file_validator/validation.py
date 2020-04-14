@@ -246,7 +246,6 @@ class ValidateFile(SetupValidation):
         for row in reader:
             _int_row_counter += 1
             if len(row) != self.first_data_row_control_length:
-
                 raise InvalidLineColumnCountException(f'row #: {_int_row_counter}, '
                                                       f'expected column count: '
                                                       f'{self.first_data_row_control_length}, '
