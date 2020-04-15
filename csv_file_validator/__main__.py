@@ -54,15 +54,12 @@ def validation_runner(file_name, config):
         LOGGER.error('file with header set to true in config has no header row')
         return 1
 
-    if validation_file_obj.file_has_no_rows():
-        if SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
-            LOGGER.info('File has no rows to validate, skipping column level validations')
-            LOGGER.info(f'Validation of {file_name} finished with: '
-                        f'{file_level_failed_validations_counter} '
-                        f'failed file level validations')
-            return 0
-        if not SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
-            pass
+    if validation_file_obj.file_has_no_rows() and SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
+        LOGGER.info('File has no rows to validate, skipping column level validations')
+        LOGGER.info(f'Validation of {file_name} finished with: '
+                    f'{file_level_failed_validations_counter} '
+                    f'failed file level validations')
+        return 0
 
     column_level_failed_validations_counter = 0
     column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()

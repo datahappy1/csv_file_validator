@@ -5,6 +5,7 @@ import logging
 import csv
 import os
 from typing import Union
+from collections.abc import Iterable
 from csv_file_validator import validation_functions as validation_funcs
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
 
@@ -145,7 +146,7 @@ class ValidateFile(SetupValidation):
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
-        self.file_row_count = sum(1 for line in self.file_handler)
+        self.file_row_count = sum([x for x in self._file_rowcount_generator()])
         self._reset_file_handler()
 
         if self._get_config_file_metadata_value('file_has_header'):
@@ -233,6 +234,17 @@ class ValidateFile(SetupValidation):
         if self.file_row_count == 0:
             return True
         return False
+
+    def _file_rowcount_generator(self) -> Iterable:
+        """
+        file row counting generator method
+        :return:
+        """
+        reader = csv.reader(self.file_handler,
+                            delimiter=self.file_value_separator,
+                            quotechar=self.file_value_quote_char)
+        for row in reader:
+            yield 1
 
     def file_read_generator(self) -> dict:
         """

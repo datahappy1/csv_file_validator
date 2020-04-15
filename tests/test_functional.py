@@ -3,7 +3,6 @@ import json
 import logging
 from csv_file_validator.__main__ import validation_runner
 
-
 class TestsFunctional:
     @staticmethod
     def open_config_file(config):
