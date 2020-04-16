@@ -6,7 +6,7 @@ import sys
 import json
 import logging
 import argparse
-from csv_file_validator.settings import SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE
+from configparser import ConfigParser
 from csv_file_validator.validation import SetupValidation, ValidateFile
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
     InvalidFileLocationException
@@ -19,7 +19,21 @@ LOGGER = logging.getLogger(__name__)
 sys.tracebacklimit = 0
 
 
-def validation_runner(file_name, config):
+def get_project_scope_settings(conf_file_loc='settings.conf') -> dict:
+    """
+    function for parsing values from settings.conf
+    :param conf_file_loc:
+    :return:
+    """
+    settings = dict()
+    parser = ConfigParser()
+    parser.read(conf_file_loc)
+    for name, value in parser.items('project_scoped_settings'):
+        settings[name] = value
+    return settings
+
+
+def validation_runner(file_name, config) -> int:
     """
     function for the validation run
     :param file_name:
@@ -54,7 +68,8 @@ def validation_runner(file_name, config):
         LOGGER.error('file with header set to true in config has no header row')
         return 1
 
-    if validation_file_obj.file_has_no_rows() and SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE:
+    if validation_file_obj.file_has_no_rows() and \
+            get_project_scope_settings().get('skip_column_validations_on_empty_file', False):
         LOGGER.info('File has no rows to validate, skipping column level validations')
         LOGGER.info(f'Validation of {file_name} finished with: '
                     f'{file_level_failed_validations_counter} '
@@ -96,7 +111,7 @@ def validation_runner(file_name, config):
     return 0
 
 
-def prepare_args():
+def prepare_args() -> dict:
     """
     function for preparation of the CLI arguments
     :return:

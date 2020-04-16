@@ -1,7 +1,10 @@
 import os
 import json
 import logging
-from csv_file_validator.__main__ import validation_runner
+from pathlib import Path
+from unittest.mock import patch
+from csv_file_validator.__main__ import validation_runner, get_project_scope_settings
+
 
 class TestsFunctional:
     @staticmethod
@@ -9,6 +12,16 @@ class TestsFunctional:
         with open(config, mode='r') as json_file:
             parsed_config = json.load(json_file)
             return parsed_config
+
+    # def test_mock(self):
+    #     with patch('csv_file_validator.__main__.get_project_scope_settings') as mock:
+    #         instance = mock.return_value
+    #         instance.method.return_value = False
+    #         print(str(Path(os.getcwd()).parents[0]) + 'csv_file_validator\\settings.conf')
+    #         #result = get_project_scope_settings('C:\\Users\\pavel.prudky\\PycharmProjects\\file_validator\\csv_file_validator\\settings.conf')
+    #         result = get_project_scope_settings(str(Path(os.getcwd()).parents[0]) + '\\csv_file_validator\\settings.conf')
+    #         print('xxx')
+    #         print(result)
 
     def test_success_file_with_header(self):
         args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_fixed.csv',
