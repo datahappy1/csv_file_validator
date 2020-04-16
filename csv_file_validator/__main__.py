@@ -5,11 +5,11 @@ import os
 import sys
 import json
 import logging
-import argparse
+from argparse import ArgumentParser
 from configparser import ConfigParser
 from csv_file_validator.validation import SetupValidation, ValidateFile
-from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException
+from csv_file_validator.exceptions import InvalidSettingsException, \
+    InvalidConfigException, InvalidLineColumnCountException, InvalidFileLocationException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -28,6 +28,13 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
     settings = dict()
     parser = ConfigParser()
     parser.read(conf_file_loc)
+
+    if not parser.has_section('project_scoped_settings'):
+        raise InvalidSettingsException("missing project_scoped_settings section in settings.conf")
+    if not parser.has_option('project_scoped_settings', 'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
+        raise InvalidSettingsException("missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
+                                       "in settings.conf")
+
     for name, value in parser.items('project_scoped_settings'):
         if value in ('True', 'true'):
             settings[name] = True
@@ -35,6 +42,7 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
             settings[name] = False
         else:
             settings[name] = value
+
     return settings
 
 
@@ -43,7 +51,7 @@ def prepare_args() -> dict:
     function for preparation of the CLI arguments
     :return:
     """
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument('-fl', '--filelocation', type=str, required=True)
     parser.add_argument('-cfg', '--configfile', type=str, required=True)
     parsed = parser.parse_args()
@@ -119,8 +127,13 @@ def validation_runner(file_name, config, settings) -> int:
         LOGGER.error('file with header set to true in config has no header row')
         return 1
 
+    if settings.get('skip_column_validations_on_empty_file') not in (True, False):
+        LOGGER.info('skip_column_validations_on_empty_file in settings.conf invalid, '
+                    'setting value to False and continuing')
+        settings['skip_column_validations_on_empty_file'] = False
+
     if validation_file_obj.file_has_no_rows() and \
-            settings.get('skip_column_validations_on_empty_file', False):
+            settings['skip_column_validations_on_empty_file']:
         LOGGER.info('File has no rows to validate, skipping column level validations')
         LOGGER.info(f'Validation of {file_name} finished with: '
                     f'{file_level_failed_validations_counter} '

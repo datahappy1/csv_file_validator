@@ -3,6 +3,12 @@ exceptions module
 """
 
 
+class InvalidSettingsException(Exception):
+    """
+    Invalid settings Exception custom exception type
+    """
+
+
 class InvalidFileLocationException(Exception):
     """
     Invalid file location Exception custom exception type
