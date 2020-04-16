@@ -33,7 +33,7 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
         raise InvalidSettingsException("missing project_scoped_settings section in settings.conf")
     if not parser.has_option('project_scoped_settings', 'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
         raise InvalidSettingsException("missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
-                                       "in settings.conf")
+                                       "in the section project_scoped_settings in settings.conf")
 
     for name, value in parser.items('project_scoped_settings'):
         if value in ('True', 'true'):
@@ -128,7 +128,7 @@ def validation_runner(file_name, config, settings) -> int:
         return 1
 
     if settings.get('skip_column_validations_on_empty_file') not in (True, False):
-        LOGGER.info('skip_column_validations_on_empty_file in settings.conf invalid, '
+        LOGGER.info('SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE in settings.conf invalid, '
                     'setting value to False and continuing')
         settings['skip_column_validations_on_empty_file'] = False
 
