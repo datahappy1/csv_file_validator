@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 sys.tracebacklimit = 0
 
 
-def get_project_scope_settings(conf_file_loc='settings.conf') -> dict:
+def prepare_settings(conf_file_loc='settings.conf') -> dict:
     """
     function for parsing values from settings.conf
     :param conf_file_loc:
@@ -29,86 +29,13 @@ def get_project_scope_settings(conf_file_loc='settings.conf') -> dict:
     parser = ConfigParser()
     parser.read(conf_file_loc)
     for name, value in parser.items('project_scoped_settings'):
-        settings[name] = value
+        if value in ('True', 'true'):
+            settings[name] = True
+        elif value in ('False', 'false'):
+            settings[name] = False
+        else:
+            settings[name] = value
     return settings
-
-
-def validation_runner(file_name, config) -> int:
-    """
-    function for the validation run
-    :param file_name:
-    :param config:
-    :return:
-    """
-    LOGGER.info(f'Validation of {file_name} started')
-
-    validation_obj = SetupValidation(config)
-    validation_obj.get_validated_config()
-
-    LOGGER.info('Validation config initiated and validated')
-
-    validation_file_obj = ValidateFile(config, file_name)
-
-    file_level_failed_validations_counter = 0
-    file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
-
-    LOGGER.info(f'Found {file_level_validations_count} file level validations')
-
-    if file_level_validations_count:
-        LOGGER.info('Evaluation of file validation rules starting')
-        try:
-            file_level_failed_validations_counter = validation_file_obj.validate_file()
-            LOGGER.info('Evaluation of file validation rules finished')
-        except InvalidConfigException as conf_err:
-            LOGGER.error(f'File {file_name} cannot be validated, '
-                         f'config file has issues, {conf_err}')
-            return 1
-
-    if validation_file_obj.file_has_empty_header():
-        LOGGER.error('file with header set to true in config has no header row')
-        return 1
-
-    if validation_file_obj.file_has_no_rows() and \
-            get_project_scope_settings().get('skip_column_validations_on_empty_file', False):
-        LOGGER.info('File has no rows to validate, skipping column level validations')
-        LOGGER.info(f'Validation of {file_name} finished with: '
-                    f'{file_level_failed_validations_counter} '
-                    f'failed file level validations')
-        return 0
-
-    column_level_failed_validations_counter = 0
-    column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
-
-    LOGGER.info(f'Found {column_level_validations_count} column level validations')
-
-    if column_level_validations_count:
-        LOGGER.info('Evaluation of column validation rules starting')
-        try:
-            for idx, line in validation_file_obj.file_read_generator():
-                column_level_failed_validations_counter += \
-                    ValidateFile.validate_line_values(validation_file_obj, line, idx)
-
-            LOGGER.info('Evaluation of column validation rules finished')
-
-        except InvalidLineColumnCountException as col_count_err:
-            LOGGER.error(f'File {file_name} cannot be validated, '
-                         f'column count is not consistent, {col_count_err}')
-            return 1
-
-        except InvalidConfigException as conf_err:
-            LOGGER.error(f'File {file_name} cannot be validated, '
-                         f'config is not consistent with the file content, {conf_err}')
-            return 1
-
-    ValidateFile.close_file_handler(validation_file_obj)
-
-    LOGGER.info(f'Validation of {file_name} finished with: '
-                f'{file_level_failed_validations_counter} '
-                f'failed file level validations ,'
-                f'{column_level_failed_validations_counter} '
-                f'failed column level validations')
-
-    return 0
 
 
 def prepare_args() -> dict:
@@ -156,7 +83,87 @@ def prepare_args() -> dict:
             'config': parsed_config}
 
 
+def validation_runner(file_name, config, settings) -> int:
+    """
+    function for the validation run
+    :param file_name:
+    :param config:
+    :param settings:
+    :return:
+    """
+    LOGGER.info(f'Validation of {file_name} started')
+
+    validation_obj = SetupValidation(config)
+    validation_obj.get_validated_config()
+
+    LOGGER.info('Validation config initiated and validated')
+
+    validation_file_obj = ValidateFile(config, file_name)
+
+    file_level_failed_validations_counter = 0
+    file_level_validations_count = validation_file_obj.get_number_of_file_level_validations()
+
+    LOGGER.info(f'Found {file_level_validations_count} file level validations')
+
+    if file_level_validations_count:
+        LOGGER.info('Evaluation of file validation rules starting')
+        try:
+            file_level_failed_validations_counter = validation_file_obj.validate_file()
+            LOGGER.info('Evaluation of file validation rules finished')
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'config file has issues, {conf_err}')
+            return 1
+
+    if validation_file_obj.file_has_empty_header():
+        LOGGER.error('file with header set to true in config has no header row')
+        return 1
+
+    if validation_file_obj.file_has_no_rows() and \
+            settings.get('skip_column_validations_on_empty_file', False):
+        LOGGER.info('File has no rows to validate, skipping column level validations')
+        LOGGER.info(f'Validation of {file_name} finished with: '
+                    f'{file_level_failed_validations_counter} '
+                    f'failed file level validations')
+        return 0
+
+    column_level_failed_validations_counter = 0
+    column_level_validations_count = validation_file_obj.get_number_of_column_level_validations()
+
+    LOGGER.info(f'Found {column_level_validations_count} column level validations')
+
+    if column_level_validations_count:
+        LOGGER.info('Evaluation of column validation rules starting')
+        try:
+            for idx, line in validation_file_obj.file_read_generator():
+                column_level_failed_validations_counter += \
+                    ValidateFile.validate_line_values(validation_file_obj, line, idx)
+
+            LOGGER.info('Evaluation of column validation rules finished')
+
+        except InvalidLineColumnCountException as col_count_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'column count is not consistent, {col_count_err}')
+            return 1
+
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'config is not consistent with the file content, {conf_err}')
+            return 1
+
+    ValidateFile.close_file_handler(validation_file_obj)
+
+    LOGGER.info(f'Validation of {file_name} finished with: '
+                f'{file_level_failed_validations_counter} '
+                f'failed file level validations ,'
+                f'{column_level_failed_validations_counter} '
+                f'failed column level validations')
+
+    return 0
+
+
 if __name__ == '__main__':
+    SETTINGS = prepare_settings()
     PREPARED_ARGS = prepare_args()
     for file in PREPARED_ARGS['file_loc']:
-        validation_runner(file, PREPARED_ARGS['config'])
+        validation_runner(file, PREPARED_ARGS['config'], SETTINGS)
