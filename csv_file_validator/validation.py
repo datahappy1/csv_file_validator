@@ -165,6 +165,7 @@ class ValidateFile(SetupValidation):
             self.column_level_validations_from_file = \
                 [str(x) for x in range(0, self.first_data_row_control_length)]
 
+        self.first_data_row_guessed_data_types = self._guess_first_data_row_data_types()
         self._reset_file_handler()
 
         self.file_level_validations = self.get_config_file_validation_rules_all_items()
@@ -177,12 +178,40 @@ class ValidateFile(SetupValidation):
         column count integrity check in the file_read_generator method
         :return:
         """
-        _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
+        self.first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
             .split(self.file_value_separator)
 
-        if _first_row != ['']:
-            return len(_first_row)
+        if self.first_row != ['']:
+            return len(self.first_row)
         return 0
+
+    @staticmethod
+    def _guess_data_type(item):
+        _guess = None
+        try:
+            float(item)
+            _guess = 'float'
+        except ValueError:
+            try:
+                int(item)
+                _guess = 'int'
+            except ValueError:
+                try:
+                    str(item)
+                    _guess = 'str'
+                except ValueError:
+                    raise
+
+        # if parser.parse(item)):
+        #     _guess  = 'datetime'
+        return _guess
+
+    def _guess_first_data_row_data_types(self) -> dict:
+        dtypes = {}
+        for item in self.first_row:
+            dtypes[item] = ValidateFile._guess_data_type(item)
+        print(dtypes)
+        return dtypes
 
     def get_number_of_file_level_validations(self) -> int:
         """
