@@ -173,7 +173,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
     - file_row_count_range : checks file row count is in the range of the provided values
     - file_header_column_names : checks file header is an exact match with the provided value
 - Column level validation rules:
-    - allow_data_type : checks column values are of the allowed data type
+    - allow_data_type : checks column values are of the allowed data type ( allowed options: `str` , `int` , `float`, `datetime`)
     - allow_numeric_value_range : checks numeric column values are in the range of the provided values
     - allow_fixed_value_list : checks column values are in the provided value list
     - allow_regex : checks column values match the provided regex pattern
