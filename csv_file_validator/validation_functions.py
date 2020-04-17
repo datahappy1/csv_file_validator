@@ -111,9 +111,9 @@ def check_file_row_count_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get('validation_value')[1] \
-            >= kwargs.get('file_row_count') \
-            >= kwargs.get('validation_value')[0]:
+    if kwargs.get('validation_value')[0] \
+            <= kwargs.get('file_row_count') \
+            <= kwargs.get('validation_value')[1]:
         return 0
     return 1
 
@@ -141,11 +141,12 @@ def check_column_allow_data_type(**kwargs):
         str(kwargs.get("column_value"))
         return 0
     if kwargs.get("validation_value") == "int":
-        int(kwargs.get("column_value"))
-        return 0
+        if kwargs.get("column_value").isdigit():
+            return 0
     if kwargs.get("validation_value") == "float":
-        float(kwargs.get("column_value"))
-        return 0
+        if "." in kwargs.get("column_value"):
+            float(kwargs.get("column_value"))
+            return 0
     if kwargs.get("validation_value") == "datetime":
         parser.parse(kwargs.get("column_value"))
         return 0
@@ -161,7 +162,7 @@ def check_column_allow_numeric_value_range(**kwargs):
     :return:
     """
     if kwargs.get("validation_value")[0] \
-            <= int(kwargs.get("column_value")) \
+            <= float(kwargs.get("column_value")) \
             <= kwargs.get("validation_value")[1]:
         return 0
     return 1
@@ -174,7 +175,7 @@ def check_column_allow_fixed_value_list(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get("column_value") in kwargs.get("validation_value"):
+    if kwargs.get("column_value") in [str(x) for x in kwargs.get("validation_value")]:
         return 0
     return 1
 
@@ -186,7 +187,7 @@ def check_column_allow_fixed_value(**kwargs):
     :param kwargs:
     :return:
     """
-    if str(kwargs.get("column_value")) == str(kwargs.get("validation_value")):
+    if kwargs.get("column_value") == str(kwargs.get("validation_value")):
         return 0
     return 1
 

@@ -57,7 +57,7 @@ class TestsFileLevelValidationFuncs:
 
 class TestLineLevelValidationFuncs:
     TESTING_KWARGS_INT_COLUMN = {'column': 'Price',
-                                 'column_value': 1201}
+                                 'column_value': '1201'}
     TESTING_KWARGS_STR_COLUMN = {'column': 'Country',
                                  'column_value': 'United States'}
 
@@ -66,7 +66,7 @@ class TestLineLevelValidationFuncs:
         assert validation_functions.check_column_allow_data_type(
             **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 0
 
-        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = 'datetime'
+        TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN['validation_value'] = 'float'
         assert validation_functions.check_column_allow_data_type(
             **TestLineLevelValidationFuncs.TESTING_KWARGS_INT_COLUMN) == 1
 
