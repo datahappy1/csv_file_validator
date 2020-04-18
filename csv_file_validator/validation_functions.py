@@ -148,7 +148,7 @@ def check_column_allow_data_type(**kwargs):
         if "." in kwargs.get("column_value"):
             float(kwargs.get("column_value"))
             return 0
-    elif kwargs.get("validation_value") in ["datetime"]:
+    elif kwargs.get("validation_value") == "datetime":
         parser.parse(kwargs.get("column_value"))
         return 0
     elif kwargs.get("validation_value").startswith("datetime."):
