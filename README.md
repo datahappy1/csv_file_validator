@@ -36,7 +36,7 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
    },
    "column_validation_rules":{
       "Transaction_date":{
-         "allow_data_type":"datetime"
+         "allow_data_type": "datetime.%M/%d/%y %H:%S"
       },
       "Country":{
          "allow_fixed_value_list":[
@@ -51,9 +51,6 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
          "allow_numeric_value_range":[0, 100000],
          "allow_fixed_value":1000,
          "allow_data_type":"int"
-      },
-      "Last Update":{
-         "allow_data_type": "datetime.%Y-%m-%dT%H:%M:%S"
       }
    }
 }
@@ -110,7 +107,7 @@ If validating a file that has a header, we have to set the `file_has_header` key
    },
    "column_validation_rules":{
       "Transaction_date":{
-         "allow_data_type":"datetime"
+         "allow_data_type": "datetime.%M/%d/%y %H:%S"
       },
       "Country":{
          "allow_fixed_value_list":[
@@ -126,9 +123,6 @@ If validating a file that has a header, we have to set the `file_has_header` key
          "allow_numeric_value_range":[0, 100000],
          "allow_fixed_value":1000,
          "allow_data_type":"int"
-      },
-      "Last Update":{
-         "allow_data_type": "datetime.%Y-%m-%dT%H:%M:%S"
       }
    }
 }
@@ -152,7 +146,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
    },
    "column_validation_rules":{
       "0":{
-         "allow_data_type":"datetime"
+         "allow_data_type": "datetime.%M/%d/%y %H:%S"
       },
       "1":{
          "allow_fixed_value_list":[
@@ -213,6 +207,8 @@ def my_new_validation_function(kwargs):
 ```
 - this function has to return 0 on successful validation, 1 on a failed validation
 - add your function to the registered validation keys - functions mapping dictionary `attribute_func_map` located in `/csv_file_validator/validation.py` in the `function_caller` static method like:
-    `"my_new_validation_function": validation_funcs.my_new_validation_function`
+```python
+"my_new_validation_function": validation_funcs.my_new_validation_function
+```
  - now you can use `my_new_validation_function` in your config json file for validations
  - for defining regex patterns in regex validation rules, check https://regex101.com/

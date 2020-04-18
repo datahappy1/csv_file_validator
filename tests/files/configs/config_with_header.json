@@ -33,7 +33,7 @@
   },
   "column_validation_rules": {
     "Transaction_date": {
-      "allow_data_type": "datetime"
+      "allow_data_type": "datetime.%M/%d/%y %H:%S"
     },
     "Country": {
       "allow_data_type": "str",

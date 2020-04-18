@@ -18,7 +18,7 @@
    },
    "column_validation_rules":{
       "0":{
-         "allow_data_type":"datetime"
+         "allow_data_type": "datetime.%M/%d/%y %H:%S"
       },
       "1":{
          "allow_data_type":"str"
