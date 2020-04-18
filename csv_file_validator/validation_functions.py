@@ -7,6 +7,7 @@ import sys
 import logging
 import functools
 from dateutil import parser
+from datetime import datetime
 
 LOGGER = logging.getLogger(__name__)
 CURRENT_FUNC_NAME = lambda n=0: sys._getframe(n + 1).f_code.co_name
@@ -140,16 +141,23 @@ def check_column_allow_data_type(**kwargs):
     if kwargs.get("validation_value") == "str":
         str(kwargs.get("column_value"))
         return 0
-    if kwargs.get("validation_value") == "int":
+    elif kwargs.get("validation_value") == "int":
         if kwargs.get("column_value").isdigit():
             return 0
-    if kwargs.get("validation_value") == "float":
+    elif kwargs.get("validation_value") == "float":
         if "." in kwargs.get("column_value"):
             float(kwargs.get("column_value"))
             return 0
-    if kwargs.get("validation_value") == "datetime":
+    elif kwargs.get("validation_value") in ["datetime"]:
         parser.parse(kwargs.get("column_value"))
         return 0
+    elif kwargs.get("validation_value").startswith("datetime."):
+        datetime_w_format = kwargs.get("validation_value")
+        dot_index = datetime_w_format.rfind('.') + 1
+        fmt = datetime_w_format[dot_index:]
+        datetime.strptime(kwargs.get("column_value"), fmt)
+        return 0
+
     return 1
 
 

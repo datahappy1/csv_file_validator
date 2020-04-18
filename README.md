@@ -51,6 +51,9 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
          "allow_numeric_value_range":[0, 100000],
          "allow_fixed_value":1000,
          "allow_data_type":"int"
+      },
+      "Last Update":{
+         "allow_data_type": "datetime.%Y-%m-%dT%H:%M:%S"
       }
    }
 }
@@ -123,6 +126,9 @@ If validating a file that has a header, we have to set the `file_has_header` key
          "allow_numeric_value_range":[0, 100000],
          "allow_fixed_value":1000,
          "allow_data_type":"int"
+      },
+      "Last Update":{
+         "allow_data_type": "datetime.%Y-%m-%dT%H:%M:%S"
       }
    }
 }
@@ -161,6 +167,9 @@ If validating a file that has no header, we have to set the `file_has_header` ke
          "allow_numeric_value_range":[0, 100000],
          "allow_fixed_value":1000,
          "allow_data_type":"int"
+      },
+      "4":{
+         "allow_data_type": "datetime.%Y-%m-%dT%H:%M:%S"
       }
    }
 }
@@ -173,7 +182,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
     - file_row_count_range : checks file row count is in the range of the provided values
     - file_header_column_names : checks file header is an exact match with the provided value
 - Column level validation rules:
-    - allow_data_type : checks column values are of the allowed data type ( allowed options: `str` , `int` , `float`, `datetime`)
+    - allow_data_type : checks column values are of the allowed data type ( allowed options: `str` , `int` , `float`, `datetime`, `datetime.<<format>>`)
     - allow_numeric_value_range : checks numeric column values are in the range of the provided values
     - allow_fixed_value_list : checks column values are in the provided value list
     - allow_regex : checks column values match the provided regex pattern
@@ -196,18 +205,14 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
 ```python
 @logging_decorator 
-def my_validation_function(kwargs):
+def my_new_validation_function(kwargs):
     if kwargs.get('validation_value') == 'a': # your validation condition success returns 0
         return 0
     # your validation condition fail returns 1     
     return 1
 ```
 - this function has to return 0 on successful validation, 1 on a failed validation
-- add your function to the registered validation keys - functions mapping in `/csv_file_validator/validation.py` in the `function_caller` static method like:
-
-        attribute_func_map = {
-            "my_new_function": validation_funcs.my_new_function
-        }
- 
- - now you can use `my_new_function` in your config json file for validations
+- add your function to the registered validation keys - functions mapping dictionary `attribute_func_map` located in `/csv_file_validator/validation.py` in the `function_caller` static method like:
+    `"my_new_validation_function": validation_funcs.my_new_validation_function`
+ - now you can use `my_new_validation_function` in your config json file for validations
  - for defining regex patterns in regex validation rules, check https://regex101.com/
