@@ -161,9 +161,6 @@ If validating a file that has no header, we have to set the `file_has_header` ke
          "allow_numeric_value_range":[0, 100000],
          "allow_fixed_value":1000,
          "allow_data_type":"int"
-      },
-      "4":{
-         "allow_data_type": "datetime.%Y-%m-%dT%H:%M:%S"
       }
    }
 }
