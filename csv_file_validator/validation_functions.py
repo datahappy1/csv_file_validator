@@ -153,7 +153,7 @@ def check_column_allow_data_type(**kwargs):
         return 0
     elif kwargs.get("validation_value").startswith("datetime."):
         datetime_w_format = kwargs.get("validation_value")
-        dot_index = datetime_w_format.rfind('.') + 1
+        dot_index = datetime_w_format.find('.') + 1
         fmt = datetime_w_format[dot_index:]
         datetime.strptime(kwargs.get("column_value"), fmt)
         return 0
