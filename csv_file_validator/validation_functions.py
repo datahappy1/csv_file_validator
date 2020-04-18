@@ -157,7 +157,8 @@ def check_column_allow_data_type(**kwargs):
         fmt = datetime_w_format[dot_index:]
         datetime.strptime(kwargs.get("column_value"), fmt)
         return 0
-
+    else:
+        return 1
     return 1
 
 
