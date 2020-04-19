@@ -171,6 +171,9 @@ class ValidateFile(SetupValidation):
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
 
+    def xxx(self):
+        return self.column_level_validations
+
     def _get_first_data_row_control_length(self) -> int:
         """
         method to get the first data row item length for file
@@ -308,7 +311,7 @@ class ValidateFile(SetupValidation):
 
         return file_level_validations_fail_count
 
-    def validate_line_values(self, line, idx) -> int:
+    def validate_line_values(self, line, idx, cx) -> int:
         """
         method for validating a line in a file, for every column level validation, call
         the mapped validation function and process it
@@ -330,15 +333,18 @@ class ValidateFile(SetupValidation):
         # looping through column names and column values in the line items
         for column_name, column_value in line.items():
 
-            column_level_validations = self._get_column_level_validation_items(col=column_name)
+            #column_level_validations = self._get_column_level_validation_items(col=column_name)
             # looping through validations for each column
-            for column, validations in column_level_validations.items():
+            #for column, validations in column_level_validations.items():
+            #print(cx[column_name])
+            #for column, validations in cx[column_name]:
 
-                # looping through validation items
-                for validation, validation_value in validations.items():
+            # looping through validation items
+            if column_name in cx:
+                for validation, validation_value in cx[column_name].items():
 
                     column_level_validations_fail_count += \
-                        self.function_caller(validation, **{'column': column,
+                        self.function_caller(validation, **{'column': column_name,
                                                             'validation_value': validation_value,
                                                             'column_value': column_value,
                                                             'row_number': idx})
