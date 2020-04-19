@@ -10,7 +10,7 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
 {
    "file_metadata":{
       "file_value_separator":",",
-      "file_value_quoting":"",
+      "file_value_quote_char":"",
       "file_row_terminator":"\n",
       "file_has_header":true
    },
@@ -41,7 +41,7 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
       "Country":{
          "allow_fixed_value_list":[
             "Norway",
-            "USA"
+            "United States"
          ],
          "allow_regex":"[a-zA-Z].+",
          "allow_substring":"sub",
@@ -81,7 +81,7 @@ If validating a file that has a header, we have to set the `file_has_header` key
 {
    "file_metadata":{
       "file_value_separator":",",
-      "file_value_quoting":"",
+      "file_value_quote_char":"",
       "file_row_terminator":"\n",
       "file_has_header":true
    },
@@ -112,12 +112,12 @@ If validating a file that has a header, we have to set the `file_has_header` key
       "Country":{
          "allow_fixed_value_list":[
             "Norway",
-            "www"
+            "United States"
          ],
          "allow_regex":"[a-zA-Z].+",
          "allow_substring":"Norwayz",
          "allow_data_type":"str",
-         "allow_fixed_value":"www"
+         "allow_fixed_value":"value"
       },
       "Price":{
          "allow_numeric_value_range":[0, 100000],
@@ -134,7 +134,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 {
    "file_metadata":{
       "file_value_separator":",",
-      "file_value_quoting":"",
+      "file_value_quote_char":"",
       "file_row_terminator":"\n",
       "file_has_header":false
    },
@@ -151,10 +151,10 @@ If validating a file that has no header, we have to set the `file_has_header` ke
       "1":{
          "allow_fixed_value_list":[
             "Norway",
-            "www"
+            "United States"
          ],
          "allow_regex":"[a-zA-Z].+",
-         "allow_substring":"",
+         "allow_substring":"xzy",
          "allow_data_type":"str"
       },
       "2":{
