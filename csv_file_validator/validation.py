@@ -120,6 +120,15 @@ class SetupValidation:
         except AttributeError:
             return None
 
+    def get_config_column_validation_rules_all_items_length(self) -> int:
+        """
+
+        :return:
+        """
+        if self.get_config_column_validation_rules_all_items():
+            return len(self.get_config_column_validation_rules_all_items())
+        return 0
+
     def get_validated_config_column_validation_rules_items(self, columns) -> Union[dict, None]:
         """
         method for returning column validation rules configuration items
@@ -171,13 +180,6 @@ class ValidateFile(SetupValidation):
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
 
-    def get_column_level_validations(self) -> dict:
-        """
-        method returning column level validations
-        :return:
-        """
-        return self.column_level_validations
-
     def _get_first_data_row_control_length(self) -> int:
         """
         method to get the first data row item length for file
@@ -199,6 +201,13 @@ class ValidateFile(SetupValidation):
         if self.file_level_validations:
             return len(self.file_level_validations)
         return 0
+
+    def get_column_level_validations(self) -> dict:
+        """
+        method returning column level validations
+        :return:
+        """
+        return self.column_level_validations
 
     def get_number_of_column_level_validations(self) -> int:
         """

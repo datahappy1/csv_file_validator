@@ -31,17 +31,17 @@
       1000
     ]
   },
-  "column_validation_rules": {
+  "column_validation_rulesx": {
     "Transaction_date": {
       "allow_data_type": "datetime.%M/%d/%y %H:%S"
     },
-    "Country": {
+    "Countryx": {
       "allow_data_type": "str",
       "allow_regex":"[a-zA-Z].+",
       "allow_fixed_value": "United States",
       "allow_fixed_value_list": ["United States", "United Kingdom"]
     },
-    "Price": {
+    "Pricex": {
       "allow_numeric_value_range": [
         100,
         100000
