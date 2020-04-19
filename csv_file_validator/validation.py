@@ -171,7 +171,11 @@ class ValidateFile(SetupValidation):
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
 
-    def xxx(self):
+    def get_column_level_validations(self) -> dict:
+        """
+        method returning column level validations
+        :return:
+        """
         return self.column_level_validations
 
     def _get_first_data_row_control_length(self) -> int:
@@ -204,14 +208,6 @@ class ValidateFile(SetupValidation):
         if self.column_level_validations:
             return len(self.column_level_validations)
         return 0
-
-    def _get_column_level_validation_items(self, col) -> dict:
-        """
-        function returning for each column the validations found
-        :param col:
-        :return:
-        """
-        return {k: v for k, v in self.column_level_validations.items() if k == str(col)}
 
     def _reset_file_handler(self) -> None:
         """
@@ -311,12 +307,13 @@ class ValidateFile(SetupValidation):
 
         return file_level_validations_fail_count
 
-    def validate_line_values(self, line, idx, cx) -> int:
+    def validate_line_values(self, line, idx, column_validations) -> int:
         """
         method for validating a line in a file, for every column level validation, call
         the mapped validation function and process it
         :param line:
         :param idx:
+        :param column_validations:
         :return:
         """
         column_level_validations_fail_count = 0
@@ -333,15 +330,9 @@ class ValidateFile(SetupValidation):
         # looping through column names and column values in the line items
         for column_name, column_value in line.items():
 
-            #column_level_validations = self._get_column_level_validation_items(col=column_name)
-            # looping through validations for each column
-            #for column, validations in column_level_validations.items():
-            #print(cx[column_name])
-            #for column, validations in cx[column_name]:
-
-            # looping through validation items
-            if column_name in cx:
-                for validation, validation_value in cx[column_name].items():
+            if column_name in column_validations:
+                # looping through validation items
+                for validation, validation_value in column_validations[column_name].items():
 
                     column_level_validations_fail_count += \
                         self.function_caller(validation, **{'column': column_name,

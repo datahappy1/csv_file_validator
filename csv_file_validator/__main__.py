@@ -151,13 +151,13 @@ def validation_runner(file_name, config, settings) -> int:
     if column_level_validations_count:
         LOGGER.info('Evaluation of column validation rules starting')
 
-        cx = validation_file_obj.xxx()
-        print(cx)
+        column_level_validations = validation_file_obj.get_column_level_validations()
 
         try:
             for idx, line in validation_file_obj.file_read_generator():
                 column_level_failed_validations_counter += \
-                    ValidateFile.validate_line_values(validation_file_obj, line, idx, cx)
+                    ValidateFile.validate_line_values(validation_file_obj, line, idx,
+                                                      column_level_validations)
 
             LOGGER.info('Evaluation of column validation rules finished')
 
@@ -185,13 +185,7 @@ def validation_runner(file_name, config, settings) -> int:
 
 
 if __name__ == '__main__':
-    import cProfile
     SETTINGS = prepare_settings()
     PREPARED_ARGS = prepare_args()
-
-    def x():
-        for file in PREPARED_ARGS['file_loc']:
-            validation_runner(file, PREPARED_ARGS['config'], SETTINGS)
-
-    cProfile.run('x()')
-
+    for file in PREPARED_ARGS['file_loc']:
+        validation_runner(file, PREPARED_ARGS['config'], SETTINGS)
