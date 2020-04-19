@@ -169,7 +169,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - File level validation rules:
     - file_name_file_mask : checks file name matches the file mask regex pattern
     - file_extension : checks file extension is an exact match with the provided value
-    - file_size_range : checks file size is in the range of the provided values
+    - file_size_range : checks file size in MB is in the range of the provided values
     - file_row_count_range : checks file row count is in the range of the provided values
     - file_header_column_names : checks file header is an exact match with the provided value
 - Column level validation rules:
