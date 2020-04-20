@@ -91,7 +91,7 @@ class TestsFunctional:
         assert 'File has no rows to validate, skipping column level validations' in caplog.text
         assert result == 0
 
-    def test_success_empty_file_dont_skip_column_validations_without_header(self, caplog):
+    def test_fail_empty_file_dont_skip_column_validations_without_header(self, caplog):
         args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_empty.csv',
                 'config': os.getcwd()+'/files/configs/config_without_header.json'}
 
@@ -103,7 +103,7 @@ class TestsFunctional:
         result = validation_runner(args['file_loc'], parsed_config, settings)
 
         assert 'Found 3 column level validations' in caplog.text
-        assert result == 0
+        assert result == 1
 
     def test_fail_inconsistent_file_without_header(self, caplog):
         args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_invalid_file.csv',

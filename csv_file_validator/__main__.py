@@ -150,6 +150,14 @@ def validation_runner(file_name, config, settings) -> int:
         LOGGER.info('Evaluation of column validation rules starting')
 
         try:
+            validation_file_obj.validate_config_file_columns_aligned_with_file_content()
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'config is not consistent with the file content, {conf_err}')
+            ValidateFile.close_file_handler(validation_file_obj)
+            return 1
+
+        try:
             for idx, line in validation_file_obj.file_read_generator():
                 column_level_failed_validations_counter += \
                     ValidateFile.validate_line_values(validation_file_obj, line, idx)
@@ -159,12 +167,6 @@ def validation_runner(file_name, config, settings) -> int:
         except InvalidLineColumnCountException as col_count_err:
             LOGGER.error(f'File {file_name} cannot be validated, '
                          f'column count is not consistent, {col_count_err}')
-            ValidateFile.close_file_handler(validation_file_obj)
-            return 1
-
-        except InvalidConfigException as conf_err:
-            LOGGER.error(f'File {file_name} cannot be validated, '
-                         f'config is not consistent with the file content, {conf_err}')
             ValidateFile.close_file_handler(validation_file_obj)
             return 1
 
