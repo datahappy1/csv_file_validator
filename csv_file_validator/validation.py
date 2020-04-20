@@ -202,22 +202,6 @@ class ValidateFile(SetupValidation):
             return len(self.file_level_validations)
         return 0
 
-    def get_column_level_validations(self) -> dict:
-        """
-        method returning column level validations
-        :return:
-        """
-        return self.column_level_validations
-
-    def get_number_of_column_level_validations(self) -> int:
-        """
-        function returning the count of the column level validations
-        :return:
-        """
-        if self.column_level_validations:
-            return len(self.column_level_validations)
-        return 0
-
     def _reset_file_handler(self) -> None:
         """
         method to reset the file handler using seek back to file beginning
