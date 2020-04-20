@@ -191,7 +191,7 @@ class ValidateFile(SetupValidation):
                                          'but none of the related columns found in the file')
 
         if len(self.column_level_validations) < \
-                len(self.get_config_column_validation_rules_all_items()):
+                self.get_config_column_validation_rules_all_items_length():
             raise InvalidConfigException('Column validations set in the config, '
                                          'but not all related columns found in the file')
         return True
