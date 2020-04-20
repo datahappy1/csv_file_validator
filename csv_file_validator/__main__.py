@@ -110,7 +110,7 @@ def validation_runner(file_name, config, settings) -> int:
 
     LOGGER.info(f'Found {file_level_validations_count} file level validations')
 
-    if file_level_validations_count:
+    if file_level_validations_count > 0:
         LOGGER.info('Evaluation of file validation rules starting')
         try:
             file_level_failed_validations_counter = validation_file_obj.validate_file()
@@ -163,6 +163,11 @@ def validation_runner(file_name, config, settings) -> int:
                     ValidateFile.validate_line_values(validation_file_obj, line, idx)
 
             LOGGER.info('Evaluation of column validation rules finished')
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'File {file_name} cannot be validated, '
+                         f'config file has issues, {conf_err}')
+            ValidateFile.close_file_handler(validation_file_obj)
+            return 1
         except InvalidLineColumnCountException as col_count_err:
             LOGGER.error(f'File {file_name} cannot be validated, '
                          f'column count is not consistent, {col_count_err}')
