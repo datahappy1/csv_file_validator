@@ -122,7 +122,7 @@ class SetupValidation:
 
     def get_config_column_validation_rules_all_items_length(self) -> int:
         """
-
+        method for returning count of column validation rules from the config file
         :return:
         """
         if self.get_config_column_validation_rules_all_items():
@@ -316,13 +316,12 @@ class ValidateFile(SetupValidation):
 
         return file_level_validations_fail_count
 
-    def validate_line_values(self, line, idx, column_validations) -> int:
+    def validate_line_values(self, line, idx) -> int:
         """
         method for validating a line in a file, for every column level validation, call
         the mapped validation function and process it
         :param line:
         :param idx:
-        :param column_validations:
         :return:
         """
         column_level_validations_fail_count = 0
@@ -338,10 +337,9 @@ class ValidateFile(SetupValidation):
 
         # looping through column names and column values in the line items
         for column_name, column_value in line.items():
-
-            if column_name in column_validations:
+            if column_name in self.column_level_validations:
                 # looping through validation items
-                for validation, validation_value in column_validations[column_name].items():
+                for validation, validation_value in self.column_level_validations[column_name].items():
 
                     column_level_validations_fail_count += \
                         self.function_caller(validation, **{'column': column_name,

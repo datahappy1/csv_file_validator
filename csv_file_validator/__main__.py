@@ -2,7 +2,6 @@
 main module
 """
 import os
-import sys
 import json
 import logging
 from argparse import ArgumentParser
@@ -15,8 +14,6 @@ from csv_file_validator.exceptions import InvalidSettingsException, \
 LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL)
 LOGGER = logging.getLogger(__name__)
-# mute traceback
-sys.tracebacklimit = 0
 
 
 def prepare_settings(conf_file_loc='settings.conf') -> dict:
@@ -146,28 +143,16 @@ def validation_runner(file_name, config, settings) -> int:
     column_level_failed_validations_counter = 0
     column_level_validations_count_from_config = \
         validation_file_obj.get_config_column_validation_rules_all_items_length()
-    column_level_validations_count_from_file = \
-        validation_file_obj.get_number_of_column_level_validations()
-
 
     LOGGER.info(f'Found {column_level_validations_count_from_config} column level validations')
-
-    # if column_level_validations_count_from_file == 0:
-    #     LOGGER.error(f'File {file_name} cannot be validated, '
-    #                  f'column level validations not consistent with file content')
-    #     ValidateFile.close_file_handler(validation_file_obj)
-    #     return 1
 
     if column_level_validations_count_from_config > 0:
         LOGGER.info('Evaluation of column validation rules starting')
 
-        column_level_validations = validation_file_obj.get_column_level_validations()
-
         try:
             for idx, line in validation_file_obj.file_read_generator():
                 column_level_failed_validations_counter += \
-                    ValidateFile.validate_line_values(validation_file_obj, line, idx,
-                                                      column_level_validations)
+                    ValidateFile.validate_line_values(validation_file_obj, line, idx)
 
             LOGGER.info('Evaluation of column validation rules finished')
 

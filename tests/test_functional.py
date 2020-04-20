@@ -102,7 +102,7 @@ class TestsFunctional:
         caplog.set_level(logging.INFO)
         result = validation_runner(args['file_loc'], parsed_config, settings)
 
-        assert 'Found 0 column level validations' in caplog.text
+        assert 'Found 3 column level validations' in caplog.text
         assert result == 0
 
     def test_fail_inconsistent_file_without_header(self, caplog):
