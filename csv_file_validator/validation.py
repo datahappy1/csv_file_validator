@@ -225,7 +225,7 @@ class ValidateFile(SetupValidation):
         """
         self.file_handler.seek(0)
 
-    def file_has_empty_header(self) -> bool:
+    def file_with_configured_header_has_empty_header(self) -> bool:
         """
         method checking if we can validate the file based on its content
         :return:
@@ -234,7 +234,7 @@ class ValidateFile(SetupValidation):
             return True
         return False
 
-    def file_has_no_rows(self) -> bool:
+    def file_has_no_data_rows(self) -> bool:
         """
         method checking if the file has any rows (besides header row if configured)
         :return:

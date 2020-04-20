@@ -101,7 +101,7 @@ def validation_runner(file_name, config, settings) -> int:
     validation_obj = SetupValidation(config)
     validation_obj.get_validated_config()
 
-    LOGGER.info('Validation config initiated and validated')
+    LOGGER.info('Validation config validated')
 
     validation_file_obj = ValidateFile(config, file_name)
 
@@ -121,7 +121,7 @@ def validation_runner(file_name, config, settings) -> int:
             ValidateFile.close_file_handler(validation_file_obj)
             return 1
 
-    if validation_file_obj.file_has_empty_header():
+    if validation_file_obj.file_with_configured_header_has_empty_header():
         LOGGER.error('file with header set to true in config has no header row')
         ValidateFile.close_file_handler(validation_file_obj)
         return 1
@@ -131,7 +131,7 @@ def validation_runner(file_name, config, settings) -> int:
                     'setting value to False and continuing')
         settings['skip_column_validations_on_empty_file'] = False
 
-    if validation_file_obj.file_has_no_rows() and \
+    if validation_file_obj.file_has_no_data_rows() and \
             settings['skip_column_validations_on_empty_file']:
         LOGGER.info('File has no rows to validate, skipping column level validations')
         LOGGER.info(f'Validation of {file_name} finished with: '
@@ -163,7 +163,6 @@ def validation_runner(file_name, config, settings) -> int:
                     ValidateFile.validate_line_values(validation_file_obj, line, idx)
 
             LOGGER.info('Evaluation of column validation rules finished')
-
         except InvalidLineColumnCountException as col_count_err:
             LOGGER.error(f'File {file_name} cannot be validated, '
                          f'column count is not consistent, {col_count_err}')
