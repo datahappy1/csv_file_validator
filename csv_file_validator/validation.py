@@ -5,7 +5,7 @@ import logging
 import csv
 import os
 from typing import Union
-from collections.abc import Iterable
+from collections.abc import Generator
 from csv_file_validator import validation_functions as validation_funcs
 from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
 
@@ -112,7 +112,6 @@ class SetupValidation:
     def get_config_column_validation_rules_all_items(self) -> Union[dict, None]:
         """
         method for returning column validation rules configuration items
-        :param column:
         :return:
         """
         try:
@@ -174,7 +173,6 @@ class ValidateFile(SetupValidation):
             self.column_level_validations_from_file = \
                 [str(x) for x in range(0, self.first_data_row_control_length)]
 
-        self.first_data_row_guessed_data_types = self._guess_first_data_row_data_types()
         self._reset_file_handler()
 
         self.file_level_validations = self.get_config_file_validation_rules_all_items()
@@ -203,40 +201,12 @@ class ValidateFile(SetupValidation):
         column count integrity check in the file_read_generator method
         :return:
         """
-        self.first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
+        _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
             .split(self.file_value_separator)
 
-        if self.first_row != ['']:
-            return len(self.first_row)
+        if _first_row != ['']:
+            return len(_first_row)
         return 0
-
-    @staticmethod
-    def _guess_data_type(item):
-        _guess = None
-        try:
-            float(item)
-            _guess = 'float'
-        except ValueError:
-            try:
-                int(item)
-                _guess = 'int'
-            except ValueError:
-                try:
-                    str(item)
-                    _guess = 'str'
-                except ValueError:
-                    raise
-
-        # if parser.parse(item)):
-        #     _guess  = 'datetime'
-        return _guess
-
-    def _guess_first_data_row_data_types(self) -> dict:
-        dtypes = {}
-        for item in self.first_row:
-            dtypes[item] = ValidateFile._guess_data_type(item)
-        print(dtypes)
-        return dtypes
 
     def get_number_of_file_level_validations(self) -> int:
         """
@@ -272,7 +242,7 @@ class ValidateFile(SetupValidation):
             return True
         return False
 
-    def _file_rowcount_generator(self) -> Iterable:
+    def _file_rowcount_generator(self) -> Generator:
         """
         file row counting generator method
         :return:
@@ -283,7 +253,7 @@ class ValidateFile(SetupValidation):
         for row in reader:
             yield 1
 
-    def file_read_generator(self) -> dict:
+    def file_read_generator(self) -> Union[Exception, Generator]:
         """
         file reading generator method
         :return:
