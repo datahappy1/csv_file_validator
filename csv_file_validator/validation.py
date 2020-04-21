@@ -49,7 +49,7 @@ class SetupValidation:
     def __init__(self, config):
         self.config = config
 
-    def _validate_config_file(self) -> Union[Exception, bool]:
+    def _validate_config_file_basic_content(self) -> Union[Exception, bool]:
         """
         config file validation method
         :return:
@@ -75,7 +75,7 @@ class SetupValidation:
         method for returning a validated configuration
         :return:
         """
-        if self._validate_config_file():
+        if self._validate_config_file_basic_content():
             return self.config
         return None
 
@@ -119,6 +119,15 @@ class SetupValidation:
             return self.config.get('column_validation_rules')
         except AttributeError:
             return None
+
+    def get_config_column_validation_rules_all_items_length(self) -> int:
+        """
+        method for returning count of column validation rules from the config file
+        :return:
+        """
+        if self.get_config_column_validation_rules_all_items():
+            return len(self.get_config_column_validation_rules_all_items())
+        return 0
 
     def get_validated_config_column_validation_rules_items(self, columns) -> Union[dict, None]:
         """
@@ -172,6 +181,22 @@ class ValidateFile(SetupValidation):
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
 
+    def validate_config_file_columns_aligned_with_file_content(self) -> Union[Exception, bool]:
+        """
+        method checking that the config file column validations are aligned with either the
+        header or the column indexes of the validated file
+        :return:
+        """
+        if not self.column_level_validations:
+            raise InvalidConfigException('Column validations set in the config, '
+                                         'but none of the related columns found in the file')
+
+        if len(self.column_level_validations) < \
+                self.get_config_column_validation_rules_all_items_length():
+            raise InvalidConfigException('Column validations set in the config, '
+                                         'but not all related columns found in the file')
+        return True
+
     def _get_first_data_row_control_length(self) -> int:
         """
         method to get the first data row item length for file
@@ -222,23 +247,6 @@ class ValidateFile(SetupValidation):
             return len(self.file_level_validations)
         return 0
 
-    def get_number_of_column_level_validations(self) -> int:
-        """
-        function returning the count of the column level validations
-        :return:
-        """
-        if self.column_level_validations:
-            return len(self.column_level_validations)
-        return 0
-
-    def _get_column_level_validation_items(self, col) -> dict:
-        """
-        function returning for each column the validations found
-        :param col:
-        :return:
-        """
-        return {k: v for k, v in self.column_level_validations.items() if k == str(col)}
-
     def _reset_file_handler(self) -> None:
         """
         method to reset the file handler using seek back to file beginning
@@ -246,7 +254,7 @@ class ValidateFile(SetupValidation):
         """
         self.file_handler.seek(0)
 
-    def file_has_empty_header(self) -> bool:
+    def file_with_configured_header_has_empty_header(self) -> bool:
         """
         method checking if we can validate the file based on its content
         :return:
@@ -255,7 +263,7 @@ class ValidateFile(SetupValidation):
             return True
         return False
 
-    def file_has_no_rows(self) -> bool:
+    def file_has_no_data_rows(self) -> bool:
         """
         method checking if the file has any rows (besides header row if configured)
         :return:
@@ -347,27 +355,14 @@ class ValidateFile(SetupValidation):
         """
         column_level_validations_fail_count = 0
 
-        if not self.column_level_validations:
-            raise InvalidConfigException('Column validations set in the config, '
-                                         'but none of the related columns found in the file')
-
-        if len(self.column_level_validations) < \
-                len(self.get_config_column_validation_rules_all_items()):
-            raise InvalidConfigException('Column validations set in the config, '
-                                         'but not all related columns found in the file')
-
         # looping through column names and column values in the line items
         for column_name, column_value in line.items():
-
-            column_level_validations = self._get_column_level_validation_items(col=column_name)
-            # looping through validations for each column
-            for column, validations in column_level_validations.items():
-
+            if column_name in self.column_level_validations:
                 # looping through validation items
-                for validation, validation_value in validations.items():
+                for validation, validation_value in self.column_level_validations[column_name].items():
 
                     column_level_validations_fail_count += \
-                        self.function_caller(validation, **{'column': column,
+                        self.function_caller(validation, **{'column': column_name,
                                                             'validation_value': validation_value,
                                                             'column_value': column_value,
                                                             'row_number': idx})
