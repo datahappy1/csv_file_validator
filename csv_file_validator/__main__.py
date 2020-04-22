@@ -6,7 +6,8 @@ import json
 import logging
 from argparse import ArgumentParser
 from configparser import ConfigParser
-from csv_file_validator.validation import SetupValidation, ValidateFileLevel, ValidateColumnLevel
+from csv_file_validator.validation import SetupValidation, SetupFile, \
+    ValidateFileLevel, ValidateColumnLevel
 from csv_file_validator.exceptions import InvalidSettingsException, \
     InvalidConfigException, InvalidLineColumnCountException, InvalidFileLocationException
 
@@ -88,31 +89,25 @@ def prepare_args() -> dict:
             'config': parsed_config}
 
 
-class Runner:
-    """
-
-    """
-    def __init__(self, file_name, config, settings):
-        self.file_name = file_name,
-        self.file_name = self.file_name[0]
-        self.config = config,
-        self.config = self.config[0]
+class ValidationRunner:
+    def __init__(self, config, settings):
+        self.config = self._validate_config(config)
         self.settings = settings
-        self.validation_file_obj = None
+        self.file_obj = None
+        self.file_name = None
         self.file_level_failed_validations_counter = 0
         self.column_level_failed_validations_counter = 0
 
-    def setup_config(self):
-        """
+    def _validate_config(self, config):
+        validation_obj = SetupValidation(config)
+        return validation_obj.get_validated_config()
 
-        :return:
-        """
+    def init_file(self, file_name):
+        self.file_name = file_name
+        self.file_obj = SetupFile(self.config, self.file_name)
+
         LOGGER.info(f'Validation of {self.file_name} started')
 
-        validation_obj = SetupValidation(self.config)
-        validation_obj.get_validated_config()
-
-        LOGGER.info('Validation config validated')
         return 0
 
     def process_file_level_validations(self):
@@ -120,20 +115,20 @@ class Runner:
 
         :return:
         """
-        self.validation_file_obj = ValidateFileLevel(self.config, self.file_name)
+        validation_file_obj = ValidateFileLevel(self.config, self.file_name)
 
-        if self.validation_file_obj.file_with_configured_header_has_empty_header():
+        if validation_file_obj.file_with_configured_header_has_empty_header:
             LOGGER.error('file with header set to true in config has no header row')
             return 1
 
-        file_level_validations_count = self.validation_file_obj.get_number_of_file_level_validations()
+        file_level_validations_count = validation_file_obj.get_file_level_validations_count()
 
         LOGGER.info(f'Found {file_level_validations_count} file level validations')
 
         if file_level_validations_count > 0:
             LOGGER.info('Evaluation of file validation rules starting')
             try:
-                self.file_level_failed_validations_counter = self.validation_file_obj.validate_file()
+                self.file_level_failed_validations_counter = validation_file_obj.validate_file()
                 LOGGER.info('Evaluation of file validation rules finished')
             except InvalidConfigException as conf_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
@@ -154,12 +149,9 @@ class Runner:
                         'setting value to False and continuing')
             self.settings['skip_column_validations_on_empty_file'] = False
 
-        if validation_column_obj.file_has_no_data_rows() and \
+        if validation_column_obj.file_has_no_data_rows and \
                 self.settings['skip_column_validations_on_empty_file']:
             LOGGER.info('File has no rows to validate, skipping column level validations')
-            LOGGER.info(f'Validation of {self.file_name} finished with: '
-                        f'{self.file_level_failed_validations_counter} '
-                        f'failed file level validations')
 
         column_level_validations_count_from_config = \
             validation_column_obj.get_config_column_validation_rules_all_items_length()
@@ -194,11 +186,7 @@ class Runner:
         return 0
 
     def complete(self):
-        """
-
-        :return:
-        """
-        self.validation_file_obj.close_file_handler()
+        self.file_obj.close_file_handler()
 
         LOGGER.info(f'Validation of {self.file_name} finished with: '
                     f'{self.file_level_failed_validations_counter} '
@@ -207,12 +195,8 @@ class Runner:
                     f'failed column level validations')
         return 0
 
-    def run(self):
-        """
-
-        :return:
-        """
-        self.setup_config()
+    def run(self, file_name):
+        self.init_file(file_name)
         self.process_file_level_validations()
         self.process_column_level_validations()
         self.complete()
@@ -221,7 +205,9 @@ class Runner:
 if __name__ == '__main__':
     SETTINGS = prepare_settings()
     PREPARED_ARGS = prepare_args()
+    CONFIG = PREPARED_ARGS['config']
+    FILE_LOCATION = PREPARED_ARGS['file_loc']
 
-    for file in PREPARED_ARGS['file_loc']:
-        r = Runner(file, PREPARED_ARGS['config'], SETTINGS)
-        r.run()
+    VALIDATION_RUNNER = ValidationRunner(CONFIG, SETTINGS)
+    for file in FILE_LOCATION:
+        VALIDATION_RUNNER.run(file)

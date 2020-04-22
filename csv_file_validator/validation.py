@@ -7,9 +7,41 @@ import os
 from typing import Union
 from collections.abc import Generator
 from csv_file_validator import validation_functions as validation_funcs
-from csv_file_validator.exceptions import InvalidConfigException, InvalidLineColumnCountException
+from csv_file_validator.exceptions import InvalidConfigException, \
+    InvalidLineColumnCountException
 
 LOGGER = logging.getLogger(__name__)
+
+
+def get_validation_function(attribute, **kwargs) -> [classmethod, None]:
+    """
+    mapping method between config rules and validation functions
+    :param attribute:
+    :param kwargs:
+    :return:
+    """
+    attribute_func_map = {
+        "file_name_file_mask": validation_funcs.check_file_mask,
+        "file_extension": validation_funcs.check_file_extension,
+        "file_size_range": validation_funcs.check_file_size_range,
+        "file_row_count_range": validation_funcs.check_file_row_count_range,
+        "file_header_column_names": validation_funcs.check_file_header_column_names,
+        "allow_data_type": validation_funcs.check_column_allow_data_type,
+        "allow_numeric_value_range": validation_funcs.check_column_allow_numeric_value_range,
+        "allow_fixed_value_list": validation_funcs.check_column_allow_fixed_value_list,
+        "allow_regex": validation_funcs.check_column_allow_regex,
+        "allow_substring": validation_funcs.check_column_allow_substring,
+        "allow_fixed_value": validation_funcs.check_column_allow_fixed_value,
+    }
+
+    for func_name, func in attribute_func_map.items():
+        if func_name == attribute:
+            ret = func(**kwargs)
+            break
+    else:
+        raise InvalidConfigException(f'function {attribute} not found in '
+                                     f'function_caller attribute_func_map')
+    return ret
 
 
 class SetupValidation:
@@ -17,43 +49,12 @@ class SetupValidation:
     Setup Validation class
     """
 
-    @staticmethod
-    def function_caller(attribute, **kwargs) -> [classmethod, None]:
-        """
-        mapping method between config rules and validation functions
-        :param attribute:
-        :param kwargs:
-        :return:
-        """
-        attribute_func_map = {
-            "file_name_file_mask": validation_funcs.check_file_mask,
-            "file_extension": validation_funcs.check_file_extension,
-            "file_size_range": validation_funcs.check_file_size_range,
-            "file_row_count_range": validation_funcs.check_file_row_count_range,
-            "file_header_column_names": validation_funcs.check_file_header_column_names,
-            "allow_data_type": validation_funcs.check_column_allow_data_type,
-            "allow_numeric_value_range": validation_funcs.check_column_allow_numeric_value_range,
-            "allow_fixed_value_list": validation_funcs.check_column_allow_fixed_value_list,
-            "allow_regex": validation_funcs.check_column_allow_regex,
-            "allow_substring": validation_funcs.check_column_allow_substring,
-            "allow_fixed_value": validation_funcs.check_column_allow_fixed_value,
-        }
-
-        for func_name, func in attribute_func_map.items():
-            if func_name == attribute:
-                ret = func(**kwargs)
-                break
-        else:
-            raise InvalidConfigException(f'function {attribute} not found in '
-                                         f'function_caller attribute_func_map')
-        return ret
-
     def __init__(self, config):
         self.config = config
 
-    def _validate_config_file_basic_content(self) -> Union[Exception, bool]:
+    def get_validated_config(self) -> Union[dict, InvalidConfigException]:
         """
-        config file validation method
+        method for returning a validated configuration
         :return:
         """
         if not self.config.get('file_metadata'):
@@ -70,16 +71,21 @@ class SetupValidation:
             raise InvalidConfigException('config file missing file_validation_rules object and '
                                          'column_validation_rules object')
 
-        return True
+        return self.config
 
-    def get_validated_config(self) -> Union[dict, None]:
-        """
-        method for returning a validated configuration
-        :return:
-        """
-        if self._validate_config_file_basic_content():
-            return self.config
-        return None
+
+class SetupFile(SetupValidation):
+    def __init__(self, config, file):
+        super().__init__(config)
+        self.file_name = file
+        self.file_handler = self._open_file_handler(self.file_name)
+        self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
+        self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
+        self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
+
+    @staticmethod
+    def _open_file_handler(file_name):
+        return open(file_name, mode='r', encoding='utf8')
 
     def _get_config_file_metadata_all_items(self) -> dict:
         """
@@ -97,80 +103,48 @@ class SetupValidation:
         metadata_item = [v for k, v in self._get_config_file_metadata_all_items()
                          if k == metadata_value]
 
-        if metadata_item:
-            return metadata_item[0]
-        return None
+        return metadata_item[0] if metadata_item else None
 
-    def get_config_file_validation_rules_all_items(self) -> Union[dict, None]:
+    def close_file_handler(self) -> None:
         """
-        method for returning file validation rules configuration items
+        method for closing the file handler after validations finished
         :return:
         """
-        try:
-            return self.config.get('file_validation_rules')
-        except AttributeError:
-            return None
-
-    def get_config_column_validation_rules_all_items(self) -> Union[dict, None]:
-        """
-        method for returning column validation rules configuration items
-        :return:
-        """
-        try:
-            return self.config.get('column_validation_rules')
-        except AttributeError:
-            return None
-
-    def get_config_column_validation_rules_all_items_length(self) -> int:
-        """
-        method for returning count of column validation rules from the config file
-        :return:
-        """
-        if self.get_config_column_validation_rules_all_items():
-            return len(self.get_config_column_validation_rules_all_items())
-        return 0
-
-    def get_validated_config_column_validation_rules_items(self, columns) -> Union[dict, None]:
-        """
-        method for returning column validation rules configuration items
-        that are verified to be in the column names of the validated file
-        :param columns:
-        :return:
-        """
-        try:
-            return {k: v for k, v in self.get_config_column_validation_rules_all_items().items()
-                    if k in columns}
-        except AttributeError:
-            return None
+        self.file_handler.close()
 
 
-class ValidateFileLevel(SetupValidation):
+class ValidateFileLevel(SetupFile):
     """
     Validate file class
     """
+
     def __init__(self, config, file):
-        super().__init__(config)
-        self.file_name = file
-        self.file_handler = open(file, mode='r', encoding='utf8')
-        self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
-        self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
-        self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
+        super().__init__(config, file)
+        self.file_level_validations = self.config.get('file_validation_rules')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
         self.file_row_count = sum([x for x in self._file_rowcount_generator()])
-        self.reset_file_handler()
+        self.file_header = self._get_file_header()
+        if self.file_header != ['']:
+            # we subtract 1 from the file_row_count because of the header row
+            self.file_row_count -= 1
 
+    @property
+    def file_with_configured_header_has_empty_header(self) -> bool:
+        """
+        method checking if we can validate the file based on its content
+        :return:
+        """
+        return True if self.file_header == [''] else False
+
+    def _get_file_header(self):
         if self._get_config_file_metadata_value('file_has_header'):
-            self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
+            file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
-            if self.file_header != ['']:
-                # we subtract 1 from the file_row_count because of the header row
-                self.file_row_count -= 1
 
+            self.reset_file_handler()
         else:
-            self.file_header = None
-
-        self.reset_file_handler()
-        self.file_level_validations = self.get_config_file_validation_rules_all_items()
+            file_header = None
+        return file_header
 
     def _file_rowcount_generator(self) -> Generator:
         """
@@ -183,14 +157,14 @@ class ValidateFileLevel(SetupValidation):
         for row in reader:
             yield 1
 
-    def get_number_of_file_level_validations(self) -> int:
+        self.reset_file_handler()
+
+    def get_file_level_validations_count(self) -> int:
         """
         function returning the count of the file level validations
         :return:
         """
-        if self.file_level_validations:
-            return len(self.file_level_validations)
-        return 0
+        return len(self.file_level_validations) or 0
 
     def reset_file_handler(self) -> None:
         """
@@ -198,15 +172,6 @@ class ValidateFileLevel(SetupValidation):
         :return:
         """
         self.file_handler.seek(0)
-
-    def file_with_configured_header_has_empty_header(self) -> bool:
-        """
-        method checking if we can validate the file based on its content
-        :return:
-        """
-        if self.file_header == ['']:
-            return True
-        return False
 
     def validate_file(self) -> int:
         """
@@ -217,39 +182,40 @@ class ValidateFileLevel(SetupValidation):
         file_level_validations_fail_count = 0
 
         for validation, validation_value in self.file_level_validations.items():
-
             file_level_validations_fail_count += \
-                self.function_caller(validation, **{'file_name': self.file_name,
-                                                    'file_handler': self.file_handler,
-                                                    'file_header': self.file_header,
-                                                    'file_row_count': self.file_row_count,
-                                                    'file_size': self.file_size,
-                                                    'validation_value': validation_value})
+                get_validation_function(validation, **{'file_name': self.file_name,
+                                                       'file_handler': self.file_handler,
+                                                       'file_header': self.file_header,
+                                                       'file_row_count': self.file_row_count,
+                                                       'file_size': self.file_size,
+                                                       'validation_value': validation_value})
 
         return file_level_validations_fail_count
-
-    def close_file_handler(self) -> None:
-        """
-        method for closing the file handler after validations finished
-        :return:
-        """
-        self.file_handler.close()
 
 
 class ValidateColumnLevel(ValidateFileLevel):
     def __init__(self, config, file):
         super().__init__(config, file)
-
-        if self.file_header:
-            self.first_data_row_control_length = self._get_first_data_row_control_length()
-            self.column_level_validations_from_file = self.file_header
-        else:
-            self.first_data_row_control_length = self._get_first_data_row_control_length()
-            self.column_level_validations_from_file = \
-                [str(x) for x in range(0, self.first_data_row_control_length)]
-
+        self.first_data_row_control_length = self._get_first_data_row_control_length()
+        self.column_level_validations_from_file = self._get_column_level_validations_from_file()
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
+
+    @property
+    def file_has_no_data_rows(self) -> bool:
+        """
+        method checking if the file has any rows (besides header row if configured)
+        :return:
+        """
+        return True if self.file_row_count == 0 else False
+
+    def _get_column_level_validations_from_file(self):
+        if self.file_header:
+            column_level_validations_from_file = self.file_header
+        else:
+            column_level_validations_from_file = \
+                [str(x) for x in range(0, self.first_data_row_control_length)]
+        return column_level_validations_from_file
 
     def _get_first_data_row_control_length(self) -> int:
         """
@@ -260,9 +226,30 @@ class ValidateColumnLevel(ValidateFileLevel):
         _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
             .split(self.file_value_separator)
 
-        if _first_row != ['']:
-            return len(_first_row)
-        return 0
+        return len(_first_row) if _first_row != [''] else 0
+
+    def get_config_column_validation_rules_all_items_length(self) -> int:
+        """
+        method for returning count of column validation rules from the config file
+        :return:
+        """
+        if self.config.get('column_validation_rules'):
+            return len(self.config['column_validation_rules'])
+        else:
+            return 0
+
+    def get_validated_config_column_validation_rules_items(self, columns) -> Union[dict, None]:
+        """
+        method for returning column validation rules configuration items
+        that are verified to be in the column names of the validated file
+        :param columns:
+        :return:
+        """
+        try:
+            return {k: v for k, v in self.config.get('column_validation_rules').items()
+                    if k in columns}
+        except AttributeError:
+            return None
 
     def validate_config_file_columns_aligned_with_file_content(self) -> Union[Exception, bool]:
         """
@@ -279,15 +266,6 @@ class ValidateColumnLevel(ValidateFileLevel):
             raise InvalidConfigException('Column validations set in the config, '
                                          'but not all related columns found in the file')
         return True
-
-    def file_has_no_data_rows(self) -> bool:
-        """
-        method checking if the file has any rows (besides header row if configured)
-        :return:
-        """
-        if self.file_row_count == 0:
-            return True
-        return False
 
     def file_read_generator(self) -> Union[Exception, Generator]:
         """
@@ -340,11 +318,10 @@ class ValidateColumnLevel(ValidateFileLevel):
                 # looping through validation items
                 for validation, validation_value in \
                         self.column_level_validations[column_name].items():
-
                     column_level_validations_fail_count += \
-                        self.function_caller(validation, **{'column': column_name,
-                                                            'validation_value': validation_value,
-                                                            'column_value': column_value,
-                                                            'row_number': idx})
+                        get_validation_function(validation, **{'column': column_name,
+                                                               'validation_value': validation_value,
+                                                               'column_value': column_value,
+                                                               'row_number': idx})
 
         return column_level_validations_fail_count
