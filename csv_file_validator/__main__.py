@@ -102,7 +102,7 @@ class Runner:
         self.file_level_failed_validations_counter = 0
         self.column_level_failed_validations_counter = 0
 
-    def process_file_level_validations(self):
+    def setup_config(self):
         """
 
         :return:
@@ -113,8 +113,18 @@ class Runner:
         validation_obj.get_validated_config()
 
         LOGGER.info('Validation config validated')
+        return 0
 
+    def process_file_level_validations(self):
+        """
+
+        :return:
+        """
         self.validation_file_obj = ValidateFileLevel(self.config, self.file_name)
+
+        if self.validation_file_obj.file_with_configured_header_has_empty_header():
+            LOGGER.error('file with header set to true in config has no header row')
+            return 1
 
         file_level_validations_count = self.validation_file_obj.get_number_of_file_level_validations()
 
@@ -129,10 +139,6 @@ class Runner:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
                              f'config file has issues, {conf_err}')
                 return 1
-
-        if self.validation_file_obj.file_with_configured_header_has_empty_header():
-            LOGGER.error('file with header set to true in config has no header row')
-            return 1
 
         return 0
 
@@ -192,19 +198,21 @@ class Runner:
 
         :return:
         """
-        ValidateFileLevel.close_file_handler(self.validation_file_obj)
+        self.validation_file_obj.close_file_handler()
 
         LOGGER.info(f'Validation of {self.file_name} finished with: '
                     f'{self.file_level_failed_validations_counter} '
                     f'failed file level validations ,'
                     f'{self.column_level_failed_validations_counter} '
                     f'failed column level validations')
+        return 0
 
     def run(self):
         """
 
         :return:
         """
+        self.setup_config()
         self.process_file_level_validations()
         self.process_column_level_validations()
         self.complete()
