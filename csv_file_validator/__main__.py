@@ -98,9 +98,7 @@ class Runner:
         self.config = config,
         self.config = self.config[0]
         self.settings = settings
-        self.validation_obj = None
         self.validation_file_obj = None
-        self.validation_column_obj = None
         self.file_level_failed_validations_counter = 0
         self.column_level_failed_validations_counter = 0
 
@@ -111,8 +109,8 @@ class Runner:
         """
         LOGGER.info(f'Validation of {self.file_name} started')
 
-        self.validation_obj = SetupValidation(self.config)
-        self.validation_obj.get_validated_config()
+        validation_obj = SetupValidation(self.config)
+        validation_obj.get_validated_config()
 
         LOGGER.info('Validation config validated')
 
@@ -143,14 +141,14 @@ class Runner:
 
         :return:
         """
-        self.validation_column_obj = ValidateColumnLevel(self.config, self.file_name)
+        validation_column_obj = ValidateColumnLevel(self.config, self.file_name)
 
         if self.settings.get('skip_column_validations_on_empty_file') not in (True, False):
             LOGGER.info('SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE in settings.conf invalid, '
                         'setting value to False and continuing')
             self.settings['skip_column_validations_on_empty_file'] = False
 
-        if self.validation_column_obj.file_has_no_data_rows() and \
+        if validation_column_obj.file_has_no_data_rows() and \
                 self.settings['skip_column_validations_on_empty_file']:
             LOGGER.info('File has no rows to validate, skipping column level validations')
             LOGGER.info(f'Validation of {self.file_name} finished with: '
@@ -158,7 +156,7 @@ class Runner:
                         f'failed file level validations')
 
         column_level_validations_count_from_config = \
-            self.validation_column_obj.get_config_column_validation_rules_all_items_length()
+            validation_column_obj.get_config_column_validation_rules_all_items_length()
 
         LOGGER.info(f'Found {column_level_validations_count_from_config} column level validations')
 
@@ -166,16 +164,16 @@ class Runner:
             LOGGER.info('Evaluation of column validation rules starting')
 
             try:
-                self.validation_column_obj.validate_config_file_columns_aligned_with_file_content()
+                validation_column_obj.validate_config_file_columns_aligned_with_file_content()
             except InvalidConfigException as conf_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
                              f'config is not consistent with the file content, {conf_err}')
                 return 1
 
             try:
-                for idx, line in self.validation_column_obj.file_read_generator():
+                for idx, line in validation_column_obj.file_read_generator():
                     self.column_level_failed_validations_counter += \
-                        ValidateColumnLevel.validate_line_values(self.validation_column_obj, line, idx)
+                        ValidateColumnLevel.validate_line_values(validation_column_obj, line, idx)
 
                 LOGGER.info('Evaluation of column validation rules finished')
             except InvalidConfigException as conf_err:
