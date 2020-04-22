@@ -6,8 +6,8 @@ import re
 import sys
 import logging
 import functools
-from dateutil import parser
 from datetime import datetime
+from dateutil import parser
 
 LOGGER = logging.getLogger(__name__)
 CURRENT_FUNC_NAME = lambda n=0: sys._getframe(n + 1).f_code.co_name
@@ -138,27 +138,25 @@ def check_column_allow_data_type(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get("validation_value") == "str":
-        str(kwargs.get("column_value"))
+    if kwargs.get("validation_value") == "str" and \
+            str(kwargs.get("column_value")):
         return 0
-    elif kwargs.get("validation_value") == "int":
-        if kwargs.get("column_value").isdigit():
-            return 0
-    elif kwargs.get("validation_value") == "float":
-        if "." in kwargs.get("column_value"):
-            float(kwargs.get("column_value"))
-            return 0
-    elif kwargs.get("validation_value") == "datetime":
-        parser.parse(kwargs.get("column_value"))
+    if kwargs.get("validation_value") == "int" and \
+            kwargs.get("column_value").isdigit():
         return 0
-    elif kwargs.get("validation_value").startswith("datetime."):
+    if kwargs.get("validation_value") == "float" and \
+            "." in kwargs.get("column_value") and \
+            float(kwargs.get("column_value")):
+        return 0
+    if kwargs.get("validation_value") == "datetime" and \
+            parser.parse(kwargs.get("column_value")):
+        return 0
+    if kwargs.get("validation_value").startswith("datetime."):
         datetime_w_format = kwargs.get("validation_value")
         dot_index = datetime_w_format.find('.') + 1
         fmt = datetime_w_format[dot_index:]
         datetime.strptime(kwargs.get("column_value"), fmt)
         return 0
-    else:
-        return 1
     return 1
 
 

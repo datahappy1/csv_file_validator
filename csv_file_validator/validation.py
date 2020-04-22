@@ -41,10 +41,12 @@ class SetupValidation:
 
         for func_name, func in attribute_func_map.items():
             if func_name == attribute:
-                return func(**kwargs)
+                ret = func(**kwargs)
+                break
         else:
             raise InvalidConfigException(f'function {attribute} not found in '
                                          f'function_caller attribute_func_map')
+        return ret
 
     def __init__(self, config):
         self.config = config
@@ -142,7 +144,7 @@ class SetupValidation:
             return None
 
 
-class ValidateFile(SetupValidation):
+class ValidateFileLevel(SetupValidation):
     """
     Validate file class
     """
@@ -155,7 +157,7 @@ class ValidateFile(SetupValidation):
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
         self.file_row_count = sum([x for x in self._file_rowcount_generator()])
-        self._reset_file_handler()
+        self.reset_file_handler()
 
         if self._get_config_file_metadata_value('file_has_header'):
             self.file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
@@ -164,20 +166,103 @@ class ValidateFile(SetupValidation):
                 # we subtract 1 from the file_row_count because of the header row
                 self.file_row_count -= 1
 
-            self.first_data_row_control_length = self._get_first_data_row_control_length()
-            self.column_level_validations_from_file = self.file_header
-
         else:
             self.file_header = None
+
+        self.reset_file_handler()
+        self.file_level_validations = self.get_config_file_validation_rules_all_items()
+
+    def _file_rowcount_generator(self) -> Generator:
+        """
+        file row counting generator method
+        :return:
+        """
+        reader = csv.reader(self.file_handler,
+                            delimiter=self.file_value_separator,
+                            quotechar=self.file_value_quote_char)
+        for row in reader:
+            yield 1
+
+    def get_number_of_file_level_validations(self) -> int:
+        """
+        function returning the count of the file level validations
+        :return:
+        """
+        if self.file_level_validations:
+            return len(self.file_level_validations)
+        return 0
+
+    def reset_file_handler(self) -> None:
+        """
+        method to reset the file handler using seek back to file beginning
+        :return:
+        """
+        self.file_handler.seek(0)
+
+    def file_with_configured_header_has_empty_header(self) -> bool:
+        """
+        method checking if we can validate the file based on its content
+        :return:
+        """
+        if self.file_header == ['']:
+            return True
+        return False
+
+    def validate_file(self) -> int:
+        """
+        method for validating a file, for every file level validation, call
+        the mapped validation function and process it
+        :return:
+        """
+        file_level_validations_fail_count = 0
+
+        for validation, validation_value in self.file_level_validations.items():
+
+            file_level_validations_fail_count += \
+                self.function_caller(validation, **{'file_name': self.file_name,
+                                                    'file_handler': self.file_handler,
+                                                    'file_header': self.file_header,
+                                                    'file_row_count': self.file_row_count,
+                                                    'file_size': self.file_size,
+                                                    'validation_value': validation_value})
+
+        return file_level_validations_fail_count
+
+    def close_file_handler(self) -> None:
+        """
+        method for closing the file handler after validations finished
+        :return:
+        """
+        self.file_handler.close()
+
+
+class ValidateColumnLevel(ValidateFileLevel):
+    def __init__(self, config, file):
+        super().__init__(config, file)
+
+        if self.file_header:
+            self.first_data_row_control_length = self._get_first_data_row_control_length()
+            self.column_level_validations_from_file = self.file_header
+        else:
             self.first_data_row_control_length = self._get_first_data_row_control_length()
             self.column_level_validations_from_file = \
                 [str(x) for x in range(0, self.first_data_row_control_length)]
 
-        self._reset_file_handler()
-
-        self.file_level_validations = self.get_config_file_validation_rules_all_items()
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
+
+    def _get_first_data_row_control_length(self) -> int:
+        """
+        method to get the first data row item length for file
+        column count integrity check in the file_read_generator method
+        :return:
+        """
+        _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
+            .split(self.file_value_separator)
+
+        if _first_row != ['']:
+            return len(_first_row)
+        return 0
 
     def validate_config_file_columns_aligned_with_file_content(self) -> Union[Exception, bool]:
         """
@@ -195,44 +280,6 @@ class ValidateFile(SetupValidation):
                                          'but not all related columns found in the file')
         return True
 
-    def _get_first_data_row_control_length(self) -> int:
-        """
-        method to get the first data row item length for file
-        column count integrity check in the file_read_generator method
-        :return:
-        """
-        _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
-            .split(self.file_value_separator)
-
-        if _first_row != ['']:
-            return len(_first_row)
-        return 0
-
-    def get_number_of_file_level_validations(self) -> int:
-        """
-        function returning the count of the file level validations
-        :return:
-        """
-        if self.file_level_validations:
-            return len(self.file_level_validations)
-        return 0
-
-    def _reset_file_handler(self) -> None:
-        """
-        method to reset the file handler using seek back to file beginning
-        :return:
-        """
-        self.file_handler.seek(0)
-
-    def file_with_configured_header_has_empty_header(self) -> bool:
-        """
-        method checking if we can validate the file based on its content
-        :return:
-        """
-        if self.file_header == ['']:
-            return True
-        return False
-
     def file_has_no_data_rows(self) -> bool:
         """
         method checking if the file has any rows (besides header row if configured)
@@ -241,17 +288,6 @@ class ValidateFile(SetupValidation):
         if self.file_row_count == 0:
             return True
         return False
-
-    def _file_rowcount_generator(self) -> Generator:
-        """
-        file row counting generator method
-        :return:
-        """
-        reader = csv.reader(self.file_handler,
-                            delimiter=self.file_value_separator,
-                            quotechar=self.file_value_quote_char)
-        for row in reader:
-            yield 1
 
     def file_read_generator(self) -> Union[Exception, Generator]:
         """
@@ -288,33 +324,6 @@ class ValidateFile(SetupValidation):
                 # row number,{(0, value), (1, value),..}
                 yield _int_row_counter, dict(zip(self.column_level_validations_from_file, row))
 
-    def close_file_handler(self) -> None:
-        """
-        method for closing the file handler after validations finished
-        :return:
-        """
-        self.file_handler.close()
-
-    def validate_file(self) -> int:
-        """
-        method for validating a file, for every file level validation, call
-        the mapped validation function and process it
-        :return:
-        """
-        file_level_validations_fail_count = 0
-
-        for validation, validation_value in self.file_level_validations.items():
-
-            file_level_validations_fail_count += \
-                self.function_caller(validation, **{'file_name': self.file_name,
-                                                    'file_handler': self.file_handler,
-                                                    'file_header': self.file_header,
-                                                    'file_row_count': self.file_row_count,
-                                                    'file_size': self.file_size,
-                                                    'validation_value': validation_value})
-
-        return file_level_validations_fail_count
-
     def validate_line_values(self, line, idx) -> int:
         """
         method for validating a line in a file, for every column level validation, call
@@ -329,7 +338,8 @@ class ValidateFile(SetupValidation):
         for column_name, column_value in line.items():
             if column_name in self.column_level_validations:
                 # looping through validation items
-                for validation, validation_value in self.column_level_validations[column_name].items():
+                for validation, validation_value in \
+                        self.column_level_validations[column_name].items():
 
                     column_level_validations_fail_count += \
                         self.function_caller(validation, **{'column': column_name,
