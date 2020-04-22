@@ -164,7 +164,9 @@ class ValidateFileLevel(SetupFile):
         function returning the count of the file level validations
         :return:
         """
-        return len(self.file_level_validations) or 0
+        if self.file_level_validations:
+            return len(self.file_level_validations)
+        return 0
 
     def reset_file_handler(self) -> None:
         """
@@ -223,10 +225,12 @@ class ValidateColumnLevel(ValidateFileLevel):
         column count integrity check in the file_read_generator method
         :return:
         """
-        _first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
+        first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
             .split(self.file_value_separator)
 
-        return len(_first_row) if _first_row != [''] else 0
+        self.reset_file_handler()
+
+        return len(first_row) if first_row != [''] else 0
 
     def get_config_column_validation_rules_all_items_length(self) -> int:
         """

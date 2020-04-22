@@ -152,6 +152,7 @@ class ValidationRunner:
         if validation_column_obj.file_has_no_data_rows and \
                 self.settings['skip_column_validations_on_empty_file']:
             LOGGER.info('File has no rows to validate, skipping column level validations')
+            return 0
 
         column_level_validations_count_from_config = \
             validation_column_obj.get_config_column_validation_rules_all_items_length()
