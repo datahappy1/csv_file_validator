@@ -66,6 +66,8 @@ def prepare_args() -> dict:
             full_path = os.path.join(_parsed_file_loc, path)
             if os.path.isfile(full_path):
                 parsed_file_loc_list.append(full_path)
+        if not parsed_file_loc_list:
+            raise InvalidFileLocationException(f"Folder {_parsed_file_loc} is empty")
 
     elif os.path.isfile(_parsed_file_loc):
         parsed_file_loc_list = [_parsed_file_loc]
@@ -108,7 +110,7 @@ class ValidationRunner:
         try:
             return validation_obj.get_validated_config()
         except InvalidConfigException as conf_err:
-            LOGGER.error(f'config file has issues, {conf_err}')
+            LOGGER.error(f'Config file has issues, {conf_err}')
             raise
 
     def init_file(self, file_name):
@@ -127,8 +129,8 @@ class ValidationRunner:
         validation_file_obj = ValidateFileLevel(self.config, self.file_name)
 
         if validation_file_obj.file_with_configured_header_has_empty_header:
-            LOGGER.error('file with header set to true in config has no header row')
-            raise
+            LOGGER.error('File with header set to true in the config has no header row')
+            raise InvalidConfigException
 
         file_level_validations_count = validation_file_obj.get_file_level_validations_count()
 
@@ -195,7 +197,7 @@ class ValidationRunner:
 
         return 0
 
-    def complete(self):
+    def exit(self):
         self.file_obj.close_file_handler()
 
         LOGGER.info(f'Validation of {self.file_name} finished with: '
@@ -209,7 +211,7 @@ class ValidationRunner:
         self.init_file(file_name)
         self.process_file_level_validations()
         self.process_column_level_validations()
-        self.complete()
+        self.exit()
 
 
 if __name__ == '__main__':
