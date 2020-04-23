@@ -2,6 +2,7 @@
 main module
 """
 import os
+import sys
 import json
 import logging
 from argparse import ArgumentParser
@@ -15,6 +16,9 @@ from csv_file_validator.exceptions import InvalidSettingsException, \
 LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL)
 LOGGER = logging.getLogger(__name__)
+
+# mute traceback
+sys.tracebacklimit = 0
 
 
 def prepare_settings(conf_file_loc='settings.conf') -> dict:
@@ -98,9 +102,14 @@ class ValidationRunner:
         self.file_level_failed_validations_counter = 0
         self.column_level_failed_validations_counter = 0
 
-    def _validate_config(self, config):
+    @staticmethod
+    def _validate_config(config):
         validation_obj = SetupValidation(config)
-        return validation_obj.get_validated_config()
+        try:
+            return validation_obj.get_validated_config()
+        except InvalidConfigException as conf_err:
+            LOGGER.error(f'config file has issues, {conf_err}')
+            raise
 
     def init_file(self, file_name):
         self.file_name = file_name
@@ -119,7 +128,7 @@ class ValidationRunner:
 
         if validation_file_obj.file_with_configured_header_has_empty_header:
             LOGGER.error('file with header set to true in config has no header row')
-            return 1
+            raise
 
         file_level_validations_count = validation_file_obj.get_file_level_validations_count()
 
@@ -133,7 +142,7 @@ class ValidationRunner:
             except InvalidConfigException as conf_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
                              f'config file has issues, {conf_err}')
-                return 1
+                raise
 
         return 0
 
@@ -152,7 +161,7 @@ class ValidationRunner:
         if validation_column_obj.file_has_no_data_rows and \
                 self.settings['skip_column_validations_on_empty_file']:
             LOGGER.info('File has no rows to validate, skipping column level validations')
-            return 0
+            return
 
         column_level_validations_count_from_config = \
             validation_column_obj.get_config_column_validation_rules_all_items_length()
@@ -167,7 +176,7 @@ class ValidationRunner:
             except InvalidConfigException as conf_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
                              f'config is not consistent with the file content, {conf_err}')
-                return 1
+                raise
 
             try:
                 for idx, line in validation_column_obj.file_read_generator():
@@ -178,11 +187,11 @@ class ValidationRunner:
             except InvalidConfigException as conf_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
                              f'config file has issues, {conf_err}')
-                return 1
+                raise
             except InvalidLineColumnCountException as col_count_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
                              f'column count is not consistent, {col_count_err}')
-                return 1
+                raise
 
         return 0
 

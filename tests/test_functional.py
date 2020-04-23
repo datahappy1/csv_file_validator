@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from csv_file_validator.__main__ import validation_runner
+from csv_file_validator.__main__ import VALIDATION_RUNNER
 
 
 class TestsFunctional:

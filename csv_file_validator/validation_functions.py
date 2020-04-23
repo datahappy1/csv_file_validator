@@ -21,7 +21,9 @@ def _get_logged_error(func_name, **kwargs) -> LOGGER:
     :param kwargs:
     :return:
     """
-    logged_string = f'{func_name} - failed to meet this value : {kwargs.get("validation_value")}'
+    logged_string = (
+        f'{func_name} - failed to meet this value : {kwargs.get("validation_value")}'
+    )
 
     if kwargs.get("row_number"):
         logged_string += f' - Row#: {kwargs["row_number"]}'
@@ -41,6 +43,7 @@ def logging_decorator(func):
     :param func:
     :return:
     """
+
     @functools.wraps(func)
     def wrapper_decorator(**kwargs):
         try:
@@ -50,7 +53,7 @@ def logging_decorator(func):
             # we still need to add one more failed validation
             # for the __main__ error counter
             validation_result = 1
-            kwargs['Exception'] = exc
+            kwargs["Exception"] = exc
 
         if validation_result != 0:
             _get_logged_error(func_name=func.__name__, **kwargs)
@@ -67,7 +70,9 @@ def check_file_extension(**kwargs):
     :param kwargs:
     :return:
     """
-    if os.path.splitext(kwargs.get('file_name'))[1][1:] == kwargs.get('validation_value'):
+    if os.path.splitext(kwargs.get("file_name"))[1][1:] == kwargs.get(
+        "validation_value"
+    ):
         return 0
     return 1
 
@@ -79,10 +84,10 @@ def check_file_mask(**kwargs):
     :param kwargs:
     :return:
     """
-    file = os.path.split(kwargs.get('file_name'))[-1]
-    dot_index = file.rfind('.')
+    file = os.path.split(kwargs.get("file_name"))[-1]
+    dot_index = file.rfind(".")
     filename = file[:dot_index]
-    result = re.match(kwargs.get('validation_value'), filename)
+    result = re.match(kwargs.get("validation_value"), filename)
 
     if result:
         return 0
@@ -97,9 +102,11 @@ def check_file_size_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get('validation_value')[1] \
-            >= kwargs.get('file_size') \
-            >= kwargs.get('validation_value')[0]:
+    if (
+        kwargs.get("validation_value")[1]
+        >= kwargs.get("file_size")
+        >= kwargs.get("validation_value")[0]
+    ):
         return 0
     return 1
 
@@ -112,9 +119,11 @@ def check_file_row_count_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get('validation_value')[0] \
-            <= kwargs.get('file_row_count') \
-            <= kwargs.get('validation_value')[1]:
+    if (
+        kwargs.get("validation_value")[0]
+        <= kwargs.get("file_row_count")
+        <= kwargs.get("validation_value")[1]
+    ):
         return 0
     return 1
 
@@ -126,7 +135,7 @@ def check_file_header_column_names(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get('validation_value') == kwargs.get('file_header'):
+    if kwargs.get("validation_value") == kwargs.get("file_header"):
         return 0
     return 1
 
@@ -138,22 +147,23 @@ def check_column_allow_data_type(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get("validation_value") == "str" and \
-            str(kwargs.get("column_value")):
+    if kwargs.get("validation_value") == "str" and str(kwargs.get("column_value")):
         return 0
-    if kwargs.get("validation_value") == "int" and \
-            kwargs.get("column_value").isdigit():
+    if kwargs.get("validation_value") == "int" and kwargs.get("column_value").isdigit():
         return 0
-    if kwargs.get("validation_value") == "float" and \
-            "." in kwargs.get("column_value") and \
-            float(kwargs.get("column_value")):
+    if (
+        kwargs.get("validation_value") == "float"
+        and "." in kwargs.get("column_value")
+        and float(kwargs.get("column_value"))
+    ):
         return 0
-    if kwargs.get("validation_value") == "datetime" and \
-            parser.parse(kwargs.get("column_value")):
+    if kwargs.get("validation_value") == "datetime" and parser.parse(
+        kwargs.get("column_value")
+    ):
         return 0
     if kwargs.get("validation_value").startswith("datetime."):
         datetime_w_format = kwargs.get("validation_value")
-        dot_index = datetime_w_format.find('.') + 1
+        dot_index = datetime_w_format.find(".") + 1
         fmt = datetime_w_format[dot_index:]
         datetime.strptime(kwargs.get("column_value"), fmt)
         return 0
@@ -168,9 +178,11 @@ def check_column_allow_numeric_value_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get("validation_value")[0] \
-            <= float(kwargs.get("column_value")) \
-            <= kwargs.get("validation_value")[1]:
+    if (
+        kwargs.get("validation_value")[0]
+        <= float(kwargs.get("column_value"))
+        <= kwargs.get("validation_value")[1]
+    ):
         return 0
     return 1
 
@@ -218,7 +230,7 @@ def check_column_allow_regex(**kwargs):
     :param kwargs:
     :return:
     """
-    result = re.match(kwargs.get('validation_value'), kwargs.get('column_value'))
+    result = re.match(kwargs.get("validation_value"), kwargs.get("column_value"))
 
     if result:
         return 0

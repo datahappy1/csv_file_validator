@@ -82,6 +82,15 @@ class SetupFile(SetupValidation):
         self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
+        self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
+        self.file_data_row_count = sum([x for x in self._file_rowcount_generator()])
+        #print(self.file_row_count)
+        self.reset_file_handler()
+        self.file_header = self._get_file_header()
+        if self.file_header and self.file_header != ['']:
+            # we subtract 1 from the file_row_count because of the header row
+            self.file_data_row_count -= 1
+        self.reset_file_handler()
 
     @staticmethod
     def _open_file_handler(file_name):
@@ -105,6 +114,32 @@ class SetupFile(SetupValidation):
 
         return metadata_item[0] if metadata_item else None
 
+    def _get_file_header(self):
+        if self._get_config_file_metadata_value('file_has_header'):
+            file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
+                .split(self.file_value_separator)
+        else:
+            file_header = None
+        return file_header
+
+    def _file_rowcount_generator(self) -> Generator:
+        """
+        file row counting generator method
+        :return:
+        """
+        reader = csv.reader(self.file_handler,
+                            delimiter=self.file_value_separator,
+                            quotechar=self.file_value_quote_char)
+        for row in reader:
+            yield 1
+
+    def reset_file_handler(self) -> None:
+        """
+        method to reset the file handler using seek back to file beginning
+        :return:
+        """
+        self.file_handler.seek(0)
+
     def close_file_handler(self) -> None:
         """
         method for closing the file handler after validations finished
@@ -121,12 +156,6 @@ class ValidateFileLevel(SetupFile):
     def __init__(self, config, file):
         super().__init__(config, file)
         self.file_level_validations = self.config.get('file_validation_rules')
-        self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
-        self.file_row_count = sum([x for x in self._file_rowcount_generator()])
-        self.file_header = self._get_file_header()
-        if self.file_header != ['']:
-            # we subtract 1 from the file_row_count because of the header row
-            self.file_row_count -= 1
 
     @property
     def file_with_configured_header_has_empty_header(self) -> bool:
@@ -136,29 +165,6 @@ class ValidateFileLevel(SetupFile):
         """
         return True if self.file_header == [''] else False
 
-    def _get_file_header(self):
-        if self._get_config_file_metadata_value('file_has_header'):
-            file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
-                .split(self.file_value_separator)
-
-            self.reset_file_handler()
-        else:
-            file_header = None
-        return file_header
-
-    def _file_rowcount_generator(self) -> Generator:
-        """
-        file row counting generator method
-        :return:
-        """
-        reader = csv.reader(self.file_handler,
-                            delimiter=self.file_value_separator,
-                            quotechar=self.file_value_quote_char)
-        for row in reader:
-            yield 1
-
-        self.reset_file_handler()
-
     def get_file_level_validations_count(self) -> int:
         """
         function returning the count of the file level validations
@@ -167,13 +173,6 @@ class ValidateFileLevel(SetupFile):
         if self.file_level_validations:
             return len(self.file_level_validations)
         return 0
-
-    def reset_file_handler(self) -> None:
-        """
-        method to reset the file handler using seek back to file beginning
-        :return:
-        """
-        self.file_handler.seek(0)
 
     def validate_file(self) -> int:
         """
@@ -188,14 +187,14 @@ class ValidateFileLevel(SetupFile):
                 get_validation_function(validation, **{'file_name': self.file_name,
                                                        'file_handler': self.file_handler,
                                                        'file_header': self.file_header,
-                                                       'file_row_count': self.file_row_count,
+                                                       'file_row_count': self.file_data_row_count,
                                                        'file_size': self.file_size,
                                                        'validation_value': validation_value})
 
         return file_level_validations_fail_count
 
 
-class ValidateColumnLevel(ValidateFileLevel):
+class ValidateColumnLevel(SetupFile):
     def __init__(self, config, file):
         super().__init__(config, file)
         self.first_data_row_control_length = self._get_first_data_row_control_length()
@@ -209,9 +208,9 @@ class ValidateColumnLevel(ValidateFileLevel):
         method checking if the file has any rows (besides header row if configured)
         :return:
         """
-        return True if self.file_row_count == 0 else False
+        return True if self.file_data_row_count == 0 else False
 
-    def _get_column_level_validations_from_file(self):
+    def _get_column_level_validations_from_file(self) -> list:
         if self.file_header:
             column_level_validations_from_file = self.file_header
         else:
