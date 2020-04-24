@@ -107,6 +107,7 @@ class ValidationRunner:
     @staticmethod
     def _validate_config(config):
         validation_obj = SetupValidation(config)
+
         try:
             return validation_obj.get_validated_config()
         except InvalidConfigException as conf_err:
@@ -184,7 +185,6 @@ class ValidationRunner:
                 for idx, line in validation_column_obj.file_read_generator():
                     self.column_level_failed_validations_counter += \
                         ValidateColumnLevel.validate_line_values(validation_column_obj, line, idx)
-
                 LOGGER.info('Evaluation of column validation rules finished')
             except InvalidConfigException as conf_err:
                 LOGGER.error(f'File {self.file_name} cannot be validated, '
@@ -198,6 +198,10 @@ class ValidationRunner:
         return 0
 
     def exit(self):
+        """
+
+        :return:
+        """
         self.file_obj.close_file_handler()
 
         LOGGER.info(f'Validation of {self.file_name} finished with: '
@@ -205,9 +209,15 @@ class ValidationRunner:
                     f'failed file level validations ,'
                     f'{self.column_level_failed_validations_counter} '
                     f'failed column level validations')
+
         return 0
 
     def run(self, file_name):
+        """
+
+        :param file_name:
+        :return:
+        """
         self.init_file(file_name)
         self.process_file_level_validations()
         self.process_column_level_validations()

@@ -1,7 +1,6 @@
 """
 validation module
 """
-import logging
 import csv
 import os
 from typing import Union
@@ -10,10 +9,8 @@ from csv_file_validator import validation_functions as validation_funcs
 from csv_file_validator.exceptions import InvalidConfigException, \
     InvalidLineColumnCountException
 
-LOGGER = logging.getLogger(__name__)
 
-
-def get_validation_function(attribute, **kwargs) -> [classmethod, None]:
+def get_validation_function(attribute, **kwargs):
     """
     mapping method between config rules and validation functions
     :param attribute:
@@ -83,14 +80,11 @@ class SetupFile(SetupValidation):
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
-        self.file_data_row_count = sum([x for x in self._file_rowcount_generator()])
-        #print(self.file_row_count)
-        self.reset_file_handler()
+        self.file_data_row_count = self._get_sum_of_rows_from__file_rowcount_generator()
         self.file_header = self._get_file_header()
         if self.file_header and self.file_header != ['']:
             # we subtract 1 from the file_row_count because of the header row
             self.file_data_row_count -= 1
-        self.reset_file_handler()
 
     @staticmethod
     def _open_file_handler(file_name):
@@ -115,6 +109,10 @@ class SetupFile(SetupValidation):
         return metadata_item[0] if metadata_item else None
 
     def _get_file_header(self):
+        """
+
+        :return:
+        """
         if self._get_config_file_metadata_value('file_has_header'):
             file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
                 .split(self.file_value_separator)
@@ -132,6 +130,15 @@ class SetupFile(SetupValidation):
                             quotechar=self.file_value_quote_char)
         for row in reader:
             yield 1
+
+    def _get_sum_of_rows_from__file_rowcount_generator(self) -> int:
+        """
+
+        :return:
+        """
+        ret = sum([x for x in self._file_rowcount_generator()])
+        self.reset_file_handler()
+        return ret
 
     def reset_file_handler(self) -> None:
         """
@@ -210,14 +217,6 @@ class ValidateColumnLevel(SetupFile):
         """
         return True if self.file_data_row_count == 0 else False
 
-    def _get_column_level_validations_from_file(self) -> list:
-        if self.file_header:
-            column_level_validations_from_file = self.file_header
-        else:
-            column_level_validations_from_file = \
-                [str(x) for x in range(0, self.first_data_row_control_length)]
-        return column_level_validations_from_file
-
     def _get_first_data_row_control_length(self) -> int:
         """
         method to get the first data row item length for file
@@ -226,10 +225,21 @@ class ValidateColumnLevel(SetupFile):
         """
         first_row = self.file_handler.readline().rstrip(self.file_row_terminator) \
             .split(self.file_value_separator)
-
         self.reset_file_handler()
 
         return len(first_row) if first_row != [''] else 0
+
+    def _get_column_level_validations_from_file(self) -> list:
+        """
+
+        :return:
+        """
+        if self.file_header:
+            column_level_validations_from_file = self.file_header
+        else:
+            column_level_validations_from_file = \
+                [str(x) for x in range(0, self.first_data_row_control_length)]
+        return column_level_validations_from_file
 
     def get_config_column_validation_rules_all_items_length(self) -> int:
         """

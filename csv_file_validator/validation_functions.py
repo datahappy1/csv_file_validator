@@ -3,14 +3,12 @@ validation_functions module
 """
 import os
 import re
-import sys
 import logging
 import functools
 from datetime import datetime
 from dateutil import parser
 
 LOGGER = logging.getLogger(__name__)
-CURRENT_FUNC_NAME = lambda n=0: sys._getframe(n + 1).f_code.co_name
 
 
 def _get_logged_error(func_name, **kwargs) -> LOGGER:
@@ -21,9 +19,7 @@ def _get_logged_error(func_name, **kwargs) -> LOGGER:
     :param kwargs:
     :return:
     """
-    logged_string = (
-        f'{func_name} - failed to meet this value : {kwargs.get("validation_value")}'
-    )
+    logged_string = f'{func_name} - failed to meet this value : {kwargs.get("validation_value")}'
 
     if kwargs.get("row_number"):
         logged_string += f' - Row#: {kwargs["row_number"]}'
@@ -70,9 +66,7 @@ def check_file_extension(**kwargs):
     :param kwargs:
     :return:
     """
-    if os.path.splitext(kwargs.get("file_name"))[1][1:] == kwargs.get(
-        "validation_value"
-    ):
+    if os.path.splitext(kwargs.get("file_name"))[1][1:] == kwargs.get("validation_value"):
         return 0
     return 1
 
@@ -102,11 +96,9 @@ def check_file_size_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if (
-        kwargs.get("validation_value")[1]
-        >= kwargs.get("file_size")
-        >= kwargs.get("validation_value")[0]
-    ):
+    if kwargs.get("validation_value")[1] >= \
+            kwargs.get("file_size") >= \
+            kwargs.get("validation_value")[0]:
         return 0
     return 1
 
@@ -119,11 +111,9 @@ def check_file_row_count_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if (
-        kwargs.get("validation_value")[0]
-        <= kwargs.get("file_row_count")
-        <= kwargs.get("validation_value")[1]
-    ):
+    if kwargs.get("validation_value")[0] <= \
+            kwargs.get("file_row_count") <= \
+            kwargs.get("validation_value")[1]:
         return 0
     return 1
 
@@ -151,15 +141,12 @@ def check_column_allow_data_type(**kwargs):
         return 0
     if kwargs.get("validation_value") == "int" and kwargs.get("column_value").isdigit():
         return 0
-    if (
-        kwargs.get("validation_value") == "float"
-        and "." in kwargs.get("column_value")
-        and float(kwargs.get("column_value"))
-    ):
+    if kwargs.get("validation_value") == "float" and \
+            "." in kwargs.get("column_value") and \
+            float(kwargs.get("column_value")):
         return 0
-    if kwargs.get("validation_value") == "datetime" and parser.parse(
-        kwargs.get("column_value")
-    ):
+    if kwargs.get("validation_value") == "datetime" and \
+            parser.parse(kwargs.get("column_value")):
         return 0
     if kwargs.get("validation_value").startswith("datetime."):
         datetime_w_format = kwargs.get("validation_value")
@@ -178,11 +165,9 @@ def check_column_allow_numeric_value_range(**kwargs):
     :param kwargs:
     :return:
     """
-    if (
-        kwargs.get("validation_value")[0]
-        <= float(kwargs.get("column_value"))
-        <= kwargs.get("validation_value")[1]
-    ):
+    if kwargs.get("validation_value")[0] <= \
+            float(kwargs.get("column_value")) <= \
+            kwargs.get("validation_value")[1]:
         return 0
     return 1
 
