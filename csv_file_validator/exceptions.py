@@ -25,9 +25,3 @@ class InvalidLineColumnCountException(Exception):
     """
     Invalid Line Column Count Exception custom exception type
     """
-
-
-class ValidationRunnerException(Exception):
-    """
-    Validation runner flow exception
-    """
