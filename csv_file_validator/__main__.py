@@ -27,6 +27,7 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
     :return:
     """
     settings = dict()
+
     parser = ConfigParser()
     parser.read(conf_file_loc)
 
@@ -99,6 +100,9 @@ def prepare_args() -> dict:
 
 
 class ValidationRunner:
+    """
+    validation runner class
+    """
     def __init__(self, config, settings):
         self.config = self._validate_config(config)
         self.settings = settings
@@ -113,13 +117,23 @@ class ValidationRunner:
         try:
             return validation_obj.get_validated_config()
         except InvalidConfigException as conf_err:
-            LOGGER.error(f'Config file has issues, {conf_err}')
+            LOGGER.error('Validation of config json file raised issued, %s', conf_err)
             raise conf_err
 
-    def init_file(self, file_name):
+    def setup_file(self, file_name):
+        """
+        setup file method
+        :param file_name:
+        :return:
+        """
         self.file_name = file_name
-        self.file_obj = SetupFile(self.config, self.file_name)
-        LOGGER.info(f'Validation of {self.file_name} started')
+        try:
+            self.file_obj = SetupFile(self.config, self.file_name)
+        except Exception as err:
+            LOGGER.error('File initiation raised issues, %s', err)
+            raise err
+
+        LOGGER.info('Validation of %s started', self.file_name)
         return 0
 
     def process_file_level_validations(self):
@@ -130,11 +144,12 @@ class ValidationRunner:
         validation_file_obj = ValidateFileLevel(self.config, self.file_name)
 
         if validation_file_obj.file_with_configured_header_has_empty_header:
-            raise InvalidConfigException('File with header set to true in the config has no header row')
+            raise InvalidConfigException('File with header set to true in the '
+                                         'config has no header row')
 
         file_level_validations_count = validation_file_obj.get_file_level_validations_count()
 
-        LOGGER.info(f'Found {file_level_validations_count} file level validations')
+        LOGGER.info('Found %s file level validations', file_level_validations_count)
 
         if file_level_validations_count > 0:
             LOGGER.info('Evaluation of file validation rules starting')
@@ -142,8 +157,9 @@ class ValidationRunner:
                 self.file_level_failed_validations_counter = validation_file_obj.validate_file()
                 LOGGER.info('Evaluation of file validation rules finished')
             except InvalidConfigException as conf_err:
-                LOGGER.error(f'File {self.file_name} cannot be validated, '
-                             f'config file has issues, {conf_err}')
+                LOGGER.error('File %s cannot be validated, '
+                             'config file has issues, %s',
+                             self.file_name, conf_err)
                 raise conf_err
         return 0
 
@@ -167,7 +183,8 @@ class ValidationRunner:
         column_level_validations_count_from_config = \
             validation_column_obj.get_config_column_validation_rules_all_items_length()
 
-        LOGGER.info(f'Found {column_level_validations_count_from_config} column level validations')
+        LOGGER.info('Found %s column level validations',
+                    column_level_validations_count_from_config)
 
         if column_level_validations_count_from_config > 0:
             LOGGER.info('Evaluation of column validation rules starting')
@@ -175,8 +192,9 @@ class ValidationRunner:
             try:
                 validation_column_obj.validate_config_file_columns_aligned_with_file_content()
             except InvalidConfigException as conf_err:
-                LOGGER.error(f'File {self.file_name} cannot be validated, '
-                             f'config is not consistent with the file content, {conf_err}')
+                LOGGER.error('File %s cannot be validated, '
+                             'config file is not consistent with the file content, %s',
+                             self.file_name, conf_err)
                 raise conf_err
 
             try:
@@ -185,12 +203,14 @@ class ValidationRunner:
                         ValidateColumnLevel.validate_line_values(validation_column_obj, line, idx)
                 LOGGER.info('Evaluation of column validation rules finished')
             except InvalidConfigException as conf_err:
-                LOGGER.error(f'File {self.file_name} cannot be validated, '
-                             f'config file has issues, {conf_err}')
+                LOGGER.error('File %s cannot be validated, '
+                             'config file has issues, %s',
+                             self.file_name, conf_err)
                 raise conf_err
             except InvalidLineColumnCountException as col_count_err:
-                LOGGER.error(f'File {self.file_name} cannot be validated, '
-                             f'column count is not consistent, {col_count_err}')
+                LOGGER.error('File %s cannot be validated, '
+                             'column count is not consistent, %s',
+                             self.file_name, col_count_err)
                 raise col_count_err
 
         return 0
@@ -200,23 +220,26 @@ class ValidationRunner:
 
         :return:
         """
-        LOGGER.info(f'Validation of {self.file_name} finished with: '
-                    f'{self.file_level_failed_validations_counter} failed file level validations '
-                    f'{self.column_level_failed_validations_counter} failed column level validations')
+        LOGGER.info('Validation of %s finished with: '
+                    '%s failed file level validations ,'
+                    '%s failed column level validations',
+                    self.file_name,
+                    self.file_level_failed_validations_counter,
+                    self.column_level_failed_validations_counter)
 
     def report_failure(self, val_err):
         """
 
         :return:
         """
-        LOGGER.info(f'Failed to validate file {self.file_name} because of {val_err.__repr__()}')
+        LOGGER.info('Failed to validate file %s because of %s',
+                    self.file_name, val_err.__repr__())
 
-    def exit(self):
+    def teardown_file(self):
         """
 
         :return:
         """
-
         self.file_obj.close_file_handler()
 
     def run(self, file_name):
@@ -226,7 +249,7 @@ class ValidationRunner:
         :return:
         """
         try:
-            self.init_file(file_name)
+            self.setup_file(file_name)
             self.process_file_level_validations()
             self.process_column_level_validations()
             self.report_success()
@@ -235,7 +258,7 @@ class ValidationRunner:
             self.report_failure(val_err)
             return 1
         finally:
-            self.exit()
+            self.teardown_file()
 
 
 if __name__ == '__main__':

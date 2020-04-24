@@ -72,6 +72,9 @@ class SetupValidation:
 
 
 class SetupFile(SetupValidation):
+    """
+    Setup File class
+    """
     def __init__(self, config, file):
         super().__init__(config)
         self.file_name = file
@@ -80,7 +83,9 @@ class SetupFile(SetupValidation):
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
-        self.file_data_row_count = self._get_sum_of_rows_from__file_rowcount_generator()
+        self.file_data_row_count = self._get_count_of_rows_from_gen()
+        print('runn setupfile')
+        print(id(self.file_data_row_count))
         self.file_header = self._get_file_header()
         if self.file_header and self.file_header != ['']:
             # we subtract 1 from the file_row_count because of the header row
@@ -125,18 +130,19 @@ class SetupFile(SetupValidation):
         file row counting generator method
         :return:
         """
+        print('xxx')
         reader = csv.reader(self.file_handler,
                             delimiter=self.file_value_separator,
                             quotechar=self.file_value_quote_char)
         for row in reader:
-            yield 1
+            yield
 
-    def _get_sum_of_rows_from__file_rowcount_generator(self) -> int:
+    def _get_count_of_rows_from_gen(self) -> int:
         """
 
         :return:
         """
-        ret = sum([x for x in self._file_rowcount_generator()])
+        ret = len(list(self._file_rowcount_generator()))
         self.reset_file_handler()
         return ret
 
@@ -170,7 +176,9 @@ class ValidateFileLevel(SetupFile):
         method checking if we can validate the file based on its content
         :return:
         """
-        return True if self.file_header == [''] else False
+        if self.file_header == ['']:
+            return True
+        return False
 
     def get_file_level_validations_count(self) -> int:
         """
@@ -202,6 +210,9 @@ class ValidateFileLevel(SetupFile):
 
 
 class ValidateColumnLevel(SetupFile):
+    """
+    Validate column level class
+    """
     def __init__(self, config, file):
         super().__init__(config, file)
         self.first_data_row_control_length = self._get_first_data_row_control_length()
@@ -215,7 +226,9 @@ class ValidateColumnLevel(SetupFile):
         method checking if the file has any rows (besides header row if configured)
         :return:
         """
-        return True if self.file_data_row_count == 0 else False
+        if self.file_data_row_count == 0:
+            return True
+        return False
 
     def _get_first_data_row_control_length(self) -> int:
         """
@@ -248,8 +261,7 @@ class ValidateColumnLevel(SetupFile):
         """
         if self.config.get('column_validation_rules'):
             return len(self.config['column_validation_rules'])
-        else:
-            return 0
+        return 0
 
     def get_validated_config_column_validation_rules_items(self, columns) -> Union[dict, None]:
         """

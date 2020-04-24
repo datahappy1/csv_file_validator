@@ -20,10 +20,10 @@ class TestsFunctional:
         settings = {'skip_column_validations_on_empty_file': True}
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert result == 0
 
@@ -38,10 +38,10 @@ class TestsFunctional:
         caplog.set_level(logging.ERROR)
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert 'check_column_allow_numeric_value_range - failed to meet this value' in caplog.text
         assert result == 0
@@ -57,10 +57,10 @@ class TestsFunctional:
         caplog.set_level(logging.INFO)
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert 'File has no rows to validate, skipping column level validations' in caplog.text
         assert result == 0
@@ -76,10 +76,10 @@ class TestsFunctional:
         caplog.set_level(logging.ERROR)
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert 'column count is not consistent, row #: 1, expected column count: 0, actual column count: 12' in caplog.text
         assert result == 1
@@ -93,10 +93,10 @@ class TestsFunctional:
         settings = {'skip_column_validations_on_empty_file': True}
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert result == 0
 
@@ -111,10 +111,10 @@ class TestsFunctional:
         caplog.set_level(logging.INFO)
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert 'File has no rows to validate, skipping column level validations' in caplog.text
         assert result == 0
@@ -130,10 +130,10 @@ class TestsFunctional:
         caplog.set_level(logging.INFO)
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert 'Found 3 column level validations' in caplog.text
         assert result == 1
@@ -149,10 +149,10 @@ class TestsFunctional:
         caplog.set_level(logging.ERROR)
 
         obj = ValidationRunner(parsed_config, settings)
-        obj.init_file(args['file_loc'])
+        obj.setup_file(args['file_loc'])
         obj.process_file_level_validations()
         obj.process_column_level_validations()
-        result = obj.exit()
+        result = obj.teardown_file()
 
         assert 'SalesJan2009_without_header_invalid_file.csv cannot be validated, column count is not consistent, row' in caplog.text
         assert result == 1
