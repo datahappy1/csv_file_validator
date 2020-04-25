@@ -161,6 +161,7 @@ class ValidationRunner:
                              'config file has issues, %s',
                              self.file_name, conf_err)
                 raise conf_err
+
         return 0
 
     def process_column_level_validations(self):

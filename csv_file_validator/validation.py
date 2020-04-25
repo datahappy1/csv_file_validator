@@ -83,10 +83,8 @@ class SetupFile(SetupValidation):
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
-        self.file_data_row_count = self._get_count_of_rows_from_gen()
-        print('runn setupfile')
-        print(id(self.file_data_row_count))
         self.file_header = self._get_file_header()
+        self.file_data_row_count = self._get_count_of_rows_from_gen()
         if self.file_header and self.file_header != ['']:
             # we subtract 1 from the file_row_count because of the header row
             self.file_data_row_count -= 1
@@ -94,6 +92,20 @@ class SetupFile(SetupValidation):
     @staticmethod
     def _open_file_handler(file_name):
         return open(file_name, mode='r', encoding='utf8')
+
+    def reset_file_handler(self) -> None:
+        """
+        method to reset the file handler using seek back to file beginning
+        :return:
+        """
+        self.file_handler.seek(0)
+
+    def close_file_handler(self) -> None:
+        """
+        method for closing the file handler after validations finished
+        :return:
+        """
+        self.file_handler.close()
 
     def _get_config_file_metadata_all_items(self) -> dict:
         """
@@ -113,24 +125,11 @@ class SetupFile(SetupValidation):
 
         return metadata_item[0] if metadata_item else None
 
-    def _get_file_header(self):
-        """
-
-        :return:
-        """
-        if self._get_config_file_metadata_value('file_has_header'):
-            file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
-                .split(self.file_value_separator)
-        else:
-            file_header = None
-        return file_header
-
     def _file_rowcount_generator(self) -> Generator:
         """
         file row counting generator method
         :return:
         """
-        print('xxx')
         reader = csv.reader(self.file_handler,
                             delimiter=self.file_value_separator,
                             quotechar=self.file_value_quote_char)
@@ -146,26 +145,33 @@ class SetupFile(SetupValidation):
         self.reset_file_handler()
         return ret
 
-    def reset_file_handler(self) -> None:
+    def _get_file_header(self):
         """
-        method to reset the file handler using seek back to file beginning
-        :return:
-        """
-        self.file_handler.seek(0)
 
-    def close_file_handler(self) -> None:
-        """
-        method for closing the file handler after validations finished
         :return:
         """
-        self.file_handler.close()
+        if self._get_config_file_metadata_value('file_has_header'):
+            file_header = self.file_handler.readline().rstrip(self.file_row_terminator) \
+                .split(self.file_value_separator)
+        else:
+            file_header = None
+        return file_header
+
+    @property
+    def file_has_no_data_rows(self) -> bool:
+        """
+        method checking if the file has any rows (besides header row if configured)
+        :return:
+        """
+        if self.file_data_row_count == 0:
+            return True
+        return False
 
 
 class ValidateFileLevel(SetupFile):
     """
     Validate file class
     """
-
     def __init__(self, config, file):
         super().__init__(config, file)
         self.file_level_validations = self.config.get('file_validation_rules')
@@ -219,16 +225,6 @@ class ValidateColumnLevel(SetupFile):
         self.column_level_validations_from_file = self._get_column_level_validations_from_file()
         self.column_level_validations = self.get_validated_config_column_validation_rules_items(
             columns=self.column_level_validations_from_file)
-
-    @property
-    def file_has_no_data_rows(self) -> bool:
-        """
-        method checking if the file has any rows (besides header row if configured)
-        :return:
-        """
-        if self.file_data_row_count == 0:
-            return True
-        return False
 
     def _get_first_data_row_control_length(self) -> int:
         """
