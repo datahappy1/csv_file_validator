@@ -148,16 +148,6 @@ class SetupFile(SetupValidation):
 
         return file_header
 
-    @property
-    def file_has_no_data_rows(self) -> bool:
-        """
-        method checking if the file has any rows (besides header row if configured)
-        :return:
-        """
-        if self.file_data_row_count == 0:
-            return True
-        return False
-
     def reset_file_handler(self) -> None:
         """
         method to reset the file handler using seek back to file beginning
@@ -172,15 +162,6 @@ class SetupFile(SetupValidation):
         """
         self.file_handler.close()
 
-
-class ValidateFileLevel(SetupFile):
-    """
-    Validate file class
-    """
-    def __init__(self, config, file):
-        super().__init__(config, file)
-        self.file_level_validations = self.config.get('file_validation_rules')
-
     @property
     def file_with_configured_header_has_empty_header(self) -> bool:
         """
@@ -190,6 +171,24 @@ class ValidateFileLevel(SetupFile):
         if self.file_header == ['']:
             return True
         return False
+
+    @property
+    def file_has_no_data_rows(self) -> bool:
+        """
+        method checking if the file has any rows (besides header row if configured)
+        :return:
+        """
+        if self.file_data_row_count == 0:
+            return True
+        return False
+
+class ValidateFileLevel(SetupFile):
+    """
+    Validate file class
+    """
+    def __init__(self, config, file):
+        super().__init__(config, file)
+        self.file_level_validations = self.config.get('file_validation_rules')
 
     def get_file_level_validations_count(self) -> int:
         """

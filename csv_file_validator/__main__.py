@@ -147,7 +147,7 @@ class ValidationRunner:
         """
         validation_file_obj = ValidateFileLevel(self.config, self.file_name)
 
-        if validation_file_obj.file_with_configured_header_has_empty_header:
+        if self.file_obj.file_with_configured_header_has_empty_header:
             raise InvalidConfigException('File with header set to true in the '
                                          'config has no header row')
 

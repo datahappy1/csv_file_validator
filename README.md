@@ -203,7 +203,7 @@ def my_new_validation_function(kwargs):
     return 1
 ```
 - this function has to return 0 on successful validation, 1 on a failed validation
-- add your function to the registered validation keys - functions mapping dictionary `attribute_func_map` located in `/csv_file_validator/validation.py` in the `function_caller` static method like:
+- add your function to the registered validation keys - functions mapping dictionary `attribute_func_map` located in `/csv_file_validator/validation.py` in the `get_validation_function` function like:
 ```python
 "my_new_validation_function": validation_funcs.my_new_validation_function
 ```

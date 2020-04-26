@@ -11,8 +11,8 @@ class TestsFunctionalPositive:
             parsed_config = json.load(json_file)
             return parsed_config
 
-    def test_fixed_file_with_header(self):
-        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_fixed.csv',
+    def test_correct_file_with_header(self):
+        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_correct_file.csv',
                 'config': os.getcwd()+'/files/configs/config_with_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -24,8 +24,21 @@ class TestsFunctionalPositive:
 
         assert result == 0
 
-    def test_invalid_file_with_header(self, caplog):
-        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_invalid_file.csv',
+    def test_correct_file_without_header(self):
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_correct_file.csv',
+                'config': os.getcwd()+'/files/configs/config_without_header.json'}
+
+        parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
+
+        settings = {'skip_column_validations_on_empty_file': True}
+
+        obj = ValidationRunner(parsed_config, settings)
+        result = obj.run(args['file_loc'])
+
+        assert result == 0
+
+    def test_incorrect_file_with_header(self, caplog):
+        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_incorrect_file.csv',
                 'config': os.getcwd()+'/files/configs/config_with_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -40,8 +53,24 @@ class TestsFunctionalPositive:
         assert 'check_column_allow_numeric_value_range - failed to meet this value' in caplog.text
         assert result == 0
 
+    def test_incorrect_file_without_header(self, caplog):
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_incorrect_file.csv',
+                'config': os.getcwd()+'/files/configs/config_without_header.json'}
+
+        parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
+
+        settings = {'skip_column_validations_on_empty_file': True}
+
+        caplog.set_level(logging.ERROR)
+
+        obj = ValidationRunner(parsed_config, settings)
+        result = obj.run(args['file_loc'])
+
+        assert 'failed to meet this value' in caplog.text
+        assert result == 0
+
     def test_empty_file_skip_column_validations_with_header(self, caplog):
-        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_empty.csv',
+        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_empty_file.csv',
                 'config': os.getcwd()+'/files/configs/config_with_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -57,7 +86,7 @@ class TestsFunctionalPositive:
         assert result == 0
 
     def test_empty_file_dont_skip_column_validations_with_header(self, caplog):
-        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_empty.csv',
+        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_empty_file.csv',
                 'config': os.getcwd()+'/files/configs/config_with_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -72,21 +101,8 @@ class TestsFunctionalPositive:
         assert 'Found 3 column level validations' in caplog.text
         assert result == 0
 
-    def test_file_without_header(self):
-        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_fixed.csv',
-                'config': os.getcwd()+'/files/configs/config_without_header.json'}
-
-        parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
-
-        settings = {'skip_column_validations_on_empty_file': True}
-
-        obj = ValidationRunner(parsed_config, settings)
-        result = obj.run(args['file_loc'])
-
-        assert result == 0
-
     def test_empty_file_skip_column_validations_without_header(self, caplog):
-        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_empty.csv',
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_empty_file.csv',
                 'config': os.getcwd()+'/files/configs/config_without_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -101,10 +117,26 @@ class TestsFunctionalPositive:
         assert 'File has no rows to validate, skipping column level validations' in caplog.text
         assert result == 0
 
+    def test_config_without_header_file_with_header(self, caplog):
+        args = {'file_loc': os.getcwd()+'/files/csv/with_header/SalesJan2009_with_header_correct_file.csv',
+                'config': os.getcwd()+'/files/configs/config_without_header.json'}
+
+        parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
+
+        settings = {'skip_column_validations_on_empty_file': True}
+
+        caplog.set_level(logging.ERROR)
+
+        obj = ValidationRunner(parsed_config, settings)
+        result = obj.run(args['file_loc'])
+
+        assert 'check_column_allow_data_type - failed to meet this value' in caplog.text
+        assert result == 0
 
 class TestsFunctionalNegative:
+
     def test_empty_file_dont_skip_column_validations_without_header(self, caplog):
-        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_empty.csv',
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_empty_file.csv',
                 'config': os.getcwd()+'/files/configs/config_without_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -119,8 +151,8 @@ class TestsFunctionalNegative:
         assert "InvalidConfigException('Column validations set in the config, but none of the expected columns found in the file')" in caplog.text
         assert result == 1
 
-    def test_inconsistent_file_without_header(self, caplog):
-        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_invalid_file.csv',
+    def test_inconsistent_file_with_header(self, caplog):
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_inconsistent_columns_file.csv',
                 'config': os.getcwd()+'/files/configs/config_without_header.json'}
 
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
@@ -132,5 +164,37 @@ class TestsFunctionalNegative:
         obj = ValidationRunner(parsed_config, settings)
         result = obj.run(args['file_loc'])
 
-        assert 'SalesJan2009_without_header_invalid_file.csv cannot be validated, column count is not consistent, row' in caplog.text
+        assert 'SalesJan2009_without_header_inconsistent_columns_file.csv cannot be validated, column count is not consistent, row' in caplog.text
+        assert result == 1
+
+    def test_inconsistent_file_without_header(self, caplog):
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_inconsistent_columns_file.csv',
+                'config': os.getcwd()+'/files/configs/config_without_header.json'}
+
+        parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
+
+        settings = {'skip_column_validations_on_empty_file': True}
+
+        caplog.set_level(logging.ERROR)
+
+        obj = ValidationRunner(parsed_config, settings)
+        result = obj.run(args['file_loc'])
+
+        assert 'SalesJan2009_without_header_inconsistent_columns_file.csv cannot be validated, column count is not consistent, row' in caplog.text
+        assert result == 1
+
+    def test_config_with_header_file_without_header(self, caplog):
+        args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_correct_file.csv',
+                'config': os.getcwd()+'/files/configs/config_with_header.json'}
+
+        parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
+
+        settings = {'skip_column_validations_on_empty_file': True}
+
+        caplog.set_level(logging.INFO)
+
+        obj = ValidationRunner(parsed_config, settings)
+        result = obj.run(args['file_loc'])
+
+        assert "SalesJan2009_without_header_correct_file.csv because of InvalidConfigException('Column validations set in the config, but not all expected columns found in the file')" in caplog.text
         assert result == 1
