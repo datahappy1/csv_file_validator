@@ -18,7 +18,7 @@ LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL)
 LOGGER = logging.getLogger(__name__)
 # mute traceback
-#sys.tracebacklimit = 0
+sys.tracebacklimit = 0
 
 
 def prepare_settings(conf_file_loc='settings.conf') -> dict:
