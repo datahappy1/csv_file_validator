@@ -10,14 +10,15 @@ from configparser import ConfigParser
 from csv_file_validator.validation import SetupValidation, SetupFile, \
     ValidateFileLevel, ValidateColumnLevel
 from csv_file_validator.exceptions import InvalidSettingsException, \
-    InvalidConfigException, InvalidLineColumnCountException, InvalidFileLocationException
+    InvalidConfigException, InvalidLineColumnCountException, \
+    InvalidFileLocationException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL)
 LOGGER = logging.getLogger(__name__)
 # mute traceback
-sys.tracebacklimit = 0
+#sys.tracebacklimit = 0
 
 
 def prepare_settings(conf_file_loc='settings.conf') -> dict:
@@ -103,6 +104,7 @@ class ValidationRunner:
     """
     validation runner class
     """
+
     def __init__(self, config, settings):
         self.config = self._validate_config(config)
         self.settings = settings
@@ -114,6 +116,7 @@ class ValidationRunner:
     @staticmethod
     def _validate_config(config):
         validation_obj = SetupValidation(config)
+
         try:
             return validation_obj.get_validated_config()
         except InvalidConfigException as conf_err:
@@ -127,10 +130,11 @@ class ValidationRunner:
         :return:
         """
         self.file_name = file_name
+
         try:
             self.file_obj = SetupFile(self.config, self.file_name)
         except Exception as err:
-            LOGGER.error('File initiation raised issues, %s', err)
+            LOGGER.error('File %s setup raised issues, %s', self.file_name, err)
             raise err
 
         LOGGER.info('Validation of %s started', self.file_name)
@@ -138,7 +142,7 @@ class ValidationRunner:
 
     def process_file_level_validations(self):
         """
-
+        process file level validations method
         :return:
         """
         validation_file_obj = ValidateFileLevel(self.config, self.file_name)
@@ -166,42 +170,34 @@ class ValidationRunner:
 
     def process_column_level_validations(self):
         """
-
+        process column level validations method
         :return:
         """
-        validation_column_obj = ValidateColumnLevel(self.config, self.file_name)
-
         if self.settings.get('skip_column_validations_on_empty_file') not in (True, False):
             LOGGER.info('SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE in settings.conf invalid, '
                         'setting value to False and continuing')
             self.settings['skip_column_validations_on_empty_file'] = False
 
-        if validation_column_obj.file_has_no_data_rows and \
+        if self.file_obj.file_has_no_data_rows and \
                 self.settings['skip_column_validations_on_empty_file']:
             LOGGER.info('File has no rows to validate, skipping column level validations')
             return 0
 
-        column_level_validations_count_from_config = \
-            validation_column_obj.get_config_column_validation_rules_all_items_length()
+        validation_column_obj = ValidateColumnLevel(self.config, self.file_name)
+
+        column_level_validations_count = \
+            validation_column_obj.get_column_level_validations_count()
 
         LOGGER.info('Found %s column level validations',
-                    column_level_validations_count_from_config)
+                    column_level_validations_count)
 
-        if column_level_validations_count_from_config > 0:
+        if column_level_validations_count > 0:
             LOGGER.info('Evaluation of column validation rules starting')
-
-            try:
-                validation_column_obj.validate_config_file_columns_aligned_with_file_content()
-            except InvalidConfigException as conf_err:
-                LOGGER.error('File %s cannot be validated, '
-                             'config file is not consistent with the file content, %s',
-                             self.file_name, conf_err)
-                raise conf_err
 
             try:
                 for idx, line in validation_column_obj.file_read_generator():
                     self.column_level_failed_validations_counter += \
-                        ValidateColumnLevel.validate_line_values(validation_column_obj, line, idx)
+                        validation_column_obj.validate_line_values(line, idx)
                 LOGGER.info('Evaluation of column validation rules finished')
             except InvalidConfigException as conf_err:
                 LOGGER.error('File %s cannot be validated, '
@@ -218,7 +214,7 @@ class ValidationRunner:
 
     def report_success(self):
         """
-
+        report success method
         :return:
         """
         LOGGER.info('Validation of %s finished with: '
@@ -230,22 +226,22 @@ class ValidationRunner:
 
     def report_failure(self, val_err):
         """
-
+        report failure method
         :return:
         """
         LOGGER.info('Failed to validate file %s because of %s',
                     self.file_name, val_err.__repr__())
 
-    def teardown_file(self):
+    def close_file(self):
         """
-
+        close file method
         :return:
         """
         self.file_obj.close_file_handler()
 
     def run(self, file_name):
         """
-
+        validation orchestration runner
         :param file_name:
         :return:
         """
@@ -259,7 +255,7 @@ class ValidationRunner:
             self.report_failure(val_err)
             return 1
         finally:
-            self.teardown_file()
+            self.close_file()
 
 
 if __name__ == '__main__':

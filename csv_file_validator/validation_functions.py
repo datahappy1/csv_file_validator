@@ -137,18 +137,20 @@ def check_column_allow_data_type(**kwargs):
     :param kwargs:
     :return:
     """
-    if kwargs.get("validation_value") == "str" and str(kwargs.get("column_value")):
-        return 0
-    if kwargs.get("validation_value") == "int" and kwargs.get("column_value").isdigit():
-        return 0
-    if kwargs.get("validation_value") == "float" and \
-            "." in kwargs.get("column_value") and \
-            float(kwargs.get("column_value")):
-        return 0
-    if kwargs.get("validation_value") == "datetime" and \
-            parser.parse(kwargs.get("column_value")):
-        return 0
-    if kwargs.get("validation_value").startswith("datetime."):
+    if kwargs.get("validation_value") == "str":
+        if str(kwargs.get("column_value")):
+            return 0
+    elif kwargs.get("validation_value") == "int":
+        if kwargs.get("column_value").isdigit():
+            return 0
+    elif kwargs.get("validation_value") == "float":
+        if "." in kwargs.get("column_value"):
+            float(kwargs.get("column_value"))
+            return 0
+    elif kwargs.get("validation_value") == "datetime":
+        if parser.parse(kwargs.get("column_value")):
+            return 0
+    elif kwargs.get("validation_value").startswith("datetime."):
         datetime_w_format = kwargs.get("validation_value")
         dot_index = datetime_w_format.find(".") + 1
         fmt = datetime_w_format[dot_index:]
