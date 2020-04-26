@@ -188,8 +188,7 @@ class ValidationRunner:
         column_level_validations_count = \
             validation_column_obj.get_column_level_validations_count()
 
-        LOGGER.info('Found %s column level validations',
-                    column_level_validations_count)
+        LOGGER.info('Found %s column level validations', column_level_validations_count)
 
         if column_level_validations_count > 0:
             LOGGER.info('Evaluation of column validation rules starting')
