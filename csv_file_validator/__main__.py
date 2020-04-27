@@ -11,7 +11,7 @@ from csv_file_validator.validation import SetupValidation, SetupFile, \
     ValidateFileLevel, ValidateColumnLevel
 from csv_file_validator.exceptions import InvalidSettingsException, \
     InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException
+    InvalidFileLocationException, ValidationErrorException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -37,8 +37,8 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
     if not parser.has_option('project_scoped_settings', 'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
         raise InvalidSettingsException("missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
                                        "in the section project_scoped_settings in settings.conf")
-    if not parser.has_option('project_scoped_settings', 'RESUME_ON_FOUND_VALIDATION_ERROR'):
-        raise InvalidSettingsException("missing RESUME_ON_FOUND_VALIDATION_ERROR option "
+    if not parser.has_option('project_scoped_settings', 'RAISE_EXCEPTION_AND_HALT_ON_FOUND_VALIDATION_ERROR'):
+        raise InvalidSettingsException("missing RAISE_EXCEPTION_AND_HALT_ON_FOUND_VALIDATION_ERROR option "
                                        "in the section project_scoped_settings in settings.conf")
 
     for name, value in parser.items('project_scoped_settings'):
@@ -147,10 +147,10 @@ class ValidationRunner:
                         'setting value to False and continuing')
             self.settings['skip_column_validations_on_empty_file'] = False
 
-        if self.settings.get('resume_on_found_validation_error') not in (True, False):
-            LOGGER.info('RESUME_ON_FOUND_VALIDATION_ERROR in settings.conf invalid, '
+        if self.settings.get('raise_exception_and_halt_on_found_validation_error') not in (True, False):
+            LOGGER.info('RAISE_EXCEPTION_AND_HALT_ON_FOUND_VALIDATION_ERROR in settings.conf invalid, '
                         'setting value to False and continuing')
-            self.settings['resume_on_found_validation_error'] = False
+            self.settings['raise_exception_and_halt_on_found_validation_error'] = False
 
         return 0
 
@@ -174,8 +174,9 @@ class ValidationRunner:
             try:
                 ret = validation_file_obj.validate_file()
                 self.file_level_failed_validations_counter = ret
-                if not self.settings['resume_on_found_validation_error'] and ret == 1:
-                    return 0
+                if self.settings['raise_exception_and_halt_on_found_validation_error'] \
+                        and ret == 1:
+                    raise ValidationErrorException('Evaluation of a validation rule failed')
                 LOGGER.info('Evaluation of all file validation rules finished')
 
             except InvalidConfigException as conf_err:
@@ -210,8 +211,9 @@ class ValidationRunner:
                 for idx, line in validation_column_obj.file_read_generator():
                     ret = validation_column_obj.validate_line_values(line, idx)
                     self.column_level_failed_validations_counter += ret
-                    if not self.settings['resume_on_found_validation_error'] and ret == 1:
-                        return 0
+                    if self.settings['raise_exception_and_halt_on_found_validation_error'] \
+                            and ret == 1:
+                        raise ValidationErrorException('Evaluation of a validation rule failed')
                 LOGGER.info('Evaluation of all column validation rules finished')
 
             except InvalidConfigException as conf_err:

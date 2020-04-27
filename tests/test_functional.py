@@ -18,7 +18,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         obj = ValidationRunner(parsed_config, settings)
         result = obj.run(args['file_loc'])
@@ -32,7 +32,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         obj = ValidationRunner(parsed_config, settings)
         result = obj.run(args['file_loc'])
@@ -46,7 +46,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.ERROR)
 
@@ -63,7 +63,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.ERROR)
 
@@ -80,7 +80,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.INFO)
 
@@ -97,7 +97,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': False,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.INFO)
 
@@ -114,7 +114,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.INFO)
 
@@ -131,7 +131,7 @@ class TestsFunctionalPositive:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.ERROR)
 
@@ -150,7 +150,7 @@ class TestsFunctionalNegative:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': False,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.INFO)
 
@@ -167,7 +167,7 @@ class TestsFunctionalNegative:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.ERROR)
 
@@ -184,7 +184,7 @@ class TestsFunctionalNegative:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.ERROR)
 
@@ -201,7 +201,7 @@ class TestsFunctionalNegative:
         parsed_config = TestsFunctionalPositive.open_config_file(args['config'])
 
         settings = {'skip_column_validations_on_empty_file': True,
-                    'resume_on_found_validation_error': True}
+                    'raise_exception_and_halt_on_found_validation_error': False}
 
         caplog.set_level(logging.INFO)
 
