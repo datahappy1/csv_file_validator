@@ -9,7 +9,7 @@
     "file_name_file_mask": ".+\\d+",
     "file_extension": "csv",
     "file_header_column_names": [
-      "Transaction_date",
+      "Transaction_dajte",
       "Product",
       "Price",
       "Payment_Type",
