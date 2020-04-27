@@ -186,7 +186,9 @@ class ValidationRunner:
                 raise conf_err
 
         if self.file_level_failed_validations_counter > 0:
-            raise ValidationErrorException('Evaluation of a validation rule failed')
+            raise ValidationErrorException(f'Evaluation of '
+                                           f'{self.file_level_failed_validations_counter} '
+                                           f'file validation rule(s) failed')
 
         return 0
 
@@ -231,7 +233,9 @@ class ValidationRunner:
                 raise col_count_err
 
         if self.column_level_failed_validations_counter > 0:
-            raise ValidationErrorException('Evaluation of a validation rule failed')
+            raise ValidationErrorException(f'Evaluation of '
+                                           f'{self.column_level_failed_validations_counter} '
+                                           f'column validation rule(s) failed')
 
         return 0
 
