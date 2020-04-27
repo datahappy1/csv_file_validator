@@ -185,6 +185,9 @@ class ValidationRunner:
                              self.file_name, conf_err)
                 raise conf_err
 
+        if self.file_level_failed_validations_counter > 0:
+            raise ValidationErrorException('Evaluation of a validation rule failed')
+
         return 0
 
     def process_column_level_validations(self):
@@ -227,6 +230,9 @@ class ValidationRunner:
                              self.file_name, col_count_err)
                 raise col_count_err
 
+        if self.column_level_failed_validations_counter > 0:
+            raise ValidationErrorException('Evaluation of a validation rule failed')
+
         return 0
 
     def report_success(self):
@@ -234,12 +240,8 @@ class ValidationRunner:
         report success method
         :return:
         """
-        LOGGER.info('Validation of %s finished with: '
-                    '%s failed file level validations ,'
-                    '%s failed column level validations',
-                    self.file_name,
-                    self.file_level_failed_validations_counter,
-                    self.column_level_failed_validations_counter)
+        LOGGER.info('Validation of %s finished with no errors ',
+                    self.file_name)
 
     def report_failure(self, val_err):
         """
@@ -248,6 +250,12 @@ class ValidationRunner:
         """
         LOGGER.info('Failed to validate file %s because of %s',
                     self.file_name, val_err.__repr__())
+        LOGGER.info('Validation of %s finished with: '
+                    '%s failed file level validations ,'
+                    '%s failed column level validations',
+                    self.file_name,
+                    self.file_level_failed_validations_counter,
+                    self.column_level_failed_validations_counter)
 
     def close_file(self):
         """
