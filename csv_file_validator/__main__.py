@@ -11,7 +11,8 @@ from csv_file_validator.validation import SetupValidation, SetupFile, \
     ValidateFileLevel, ValidateColumnLevel
 from csv_file_validator.exceptions import InvalidSettingsException, \
     InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException, ValidationErrorException
+    InvalidFileLocationException, ValidationFirstErrorException, \
+    ValidationErrorException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -176,7 +177,7 @@ class ValidationRunner:
                 self.file_level_failed_validations_counter = ret
                 if self.settings['raise_exception_and_halt_on_found_validation_error'] \
                         and ret == 1:
-                    raise ValidationErrorException('Evaluation of a validation rule failed')
+                    raise ValidationFirstErrorException('Evaluation of a validation rule failed')
                 LOGGER.info('Evaluation of all file validation rules finished')
 
             except InvalidConfigException as conf_err:
@@ -218,7 +219,7 @@ class ValidationRunner:
                     self.column_level_failed_validations_counter += ret
                     if self.settings['raise_exception_and_halt_on_found_validation_error'] \
                             and ret == 1:
-                        raise ValidationErrorException('Evaluation of a validation rule failed')
+                        raise ValidationFirstErrorException('Evaluation of a validation rule failed')
                 LOGGER.info('Evaluation of all column validation rules finished')
 
             except InvalidConfigException as conf_err:
@@ -276,15 +277,40 @@ class ValidationRunner:
         """
         try:
             self.setup_file_run(file_name)
-            self.process_file_level_validations()
-            self.process_column_level_validations()
-            self.report_success()
-            return 0
         except Exception as val_err:
+            self.close_file()
             self.report_failure(val_err)
             return 1
-        finally:
+
+        _runner_exception = str()
+
+        try:
+            self.process_file_level_validations()
+        except ValidationFirstErrorException as exc:
             self.close_file()
+            self.report_failure(exc)
+            return 1
+        except ValidationErrorException as exc:
+            _runner_exception += str(exc)
+
+        try:
+            self.process_column_level_validations()
+        except ValidationFirstErrorException as exc:
+            self.close_file()
+            self.report_failure(exc)
+            return 1
+        except ValidationErrorException as exc:
+            _runner_exception += '; ' + str(exc)
+
+        if _runner_exception:
+            self.close_file()
+            self.report_failure(_runner_exception)
+            return 1
+
+        self.close_file()
+        self.report_success()
+
+        return 0
 
 
 if __name__ == '__main__':

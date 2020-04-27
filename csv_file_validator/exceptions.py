@@ -27,7 +27,13 @@ class InvalidLineColumnCountException(Exception):
     """
 
 
-class ValidationErrorException(Exception):
+class ValidationFirstErrorException(Exception):
     """
     Validation error Exception custom exception type
+    """
+
+
+class ValidationErrorException(Exception):
+    """
+
     """
