@@ -10,7 +10,7 @@
     "file_extension": "csv",
     "file_header_column_names": [
       "Transaction_date",
-      "Productx",
+      "Product",
       "Price",
       "Payment_Type",
       "Name",

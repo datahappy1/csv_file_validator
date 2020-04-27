@@ -187,7 +187,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - run using a command for example: `python C:\csv_file_validator\csv_file_validator -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_correct_file.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
 
 - in `settings.conf` file 
-    - you can set the variable `RAISE_EXCEPTION_AND_HALT_ON_FOUND_VALIDATION_ERROR` to `True` or `False`, this variable drives the behavior whether the tool stops validations on a first found failed validation or not
+    - you can set the variable `RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION` to `True` or `False`, this variable drives the behavior whether the tool stops validations on a first found failed validation or not
     - you can set the variable `SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE` to `True` or `False`, this variable drives the behavior whether the tool bypass the column level validations on a file that has no rows or not
 
 
