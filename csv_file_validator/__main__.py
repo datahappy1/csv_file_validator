@@ -126,9 +126,9 @@ class ValidationRunner:
             LOGGER.error('Validation of config json file raised issued, %s', conf_err)
             raise conf_err
 
-    def setup_file(self, file_name):
+    def setup_file_run(self, file_name):
         """
-        setup file method
+        setup file run method
         :param file_name:
         :return:
         """
@@ -244,7 +244,7 @@ class ValidationRunner:
         report success method
         :return:
         """
-        LOGGER.info('Validation of %s finished with no errors ',
+        LOGGER.info('Validation of %s finished without any errors',
                     self.file_name)
 
     def report_failure(self, val_err):
@@ -275,7 +275,7 @@ class ValidationRunner:
         :return:
         """
         try:
-            self.setup_file(file_name)
+            self.setup_file_run(file_name)
             self.process_file_level_validations()
             self.process_column_level_validations()
             self.report_success()
