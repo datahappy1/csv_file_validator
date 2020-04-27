@@ -37,6 +37,9 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
     if not parser.has_option('project_scoped_settings', 'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
         raise InvalidSettingsException("missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
                                        "in the section project_scoped_settings in settings.conf")
+    if not parser.has_option('project_scoped_settings', 'RESUME_ON_FOUND_VALIDATION_ERROR'):
+        raise InvalidSettingsException("missing RESUME_ON_FOUND_VALIDATION_ERROR option "
+                                       "in the section project_scoped_settings in settings.conf")
 
     for name, value in parser.items('project_scoped_settings'):
         if value in ('True', 'true'):
@@ -138,6 +141,17 @@ class ValidationRunner:
             raise err
 
         LOGGER.info('Validation of %s started', self.file_name)
+
+        if self.settings.get('skip_column_validations_on_empty_file') not in (True, False):
+            LOGGER.info('SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE in settings.conf invalid, '
+                        'setting value to False and continuing')
+            self.settings['skip_column_validations_on_empty_file'] = False
+
+        if self.settings.get('resume_on_found_validation_error') not in (True, False):
+            LOGGER.info('RESUME_ON_FOUND_VALIDATION_ERROR in settings.conf invalid, '
+                        'setting value to False and continuing')
+            self.settings['resume_on_found_validation_error'] = False
+
         return 0
 
     def process_file_level_validations(self):
@@ -158,8 +172,12 @@ class ValidationRunner:
         if file_level_validations_count > 0:
             LOGGER.info('Evaluation of file validation rules starting')
             try:
-                self.file_level_failed_validations_counter = validation_file_obj.validate_file()
-                LOGGER.info('Evaluation of file validation rules finished')
+                ret = validation_file_obj.validate_file()
+                self.file_level_failed_validations_counter = ret
+                if not self.settings['resume_on_found_validation_error'] and ret == 1:
+                    return 0
+                LOGGER.info('Evaluation of all file validation rules finished')
+
             except InvalidConfigException as conf_err:
                 LOGGER.error('File %s cannot be validated, '
                              'config file has issues, %s',
@@ -173,11 +191,6 @@ class ValidationRunner:
         process column level validations method
         :return:
         """
-        if self.settings.get('skip_column_validations_on_empty_file') not in (True, False):
-            LOGGER.info('SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE in settings.conf invalid, '
-                        'setting value to False and continuing')
-            self.settings['skip_column_validations_on_empty_file'] = False
-
         if self.file_obj.file_has_no_data_rows and \
                 self.settings['skip_column_validations_on_empty_file']:
             LOGGER.info('File has no rows to validate, skipping column level validations')
@@ -195,9 +208,12 @@ class ValidationRunner:
 
             try:
                 for idx, line in validation_column_obj.file_read_generator():
-                    self.column_level_failed_validations_counter += \
-                        validation_column_obj.validate_line_values(line, idx)
-                LOGGER.info('Evaluation of column validation rules finished')
+                    ret = validation_column_obj.validate_line_values(line, idx)
+                    self.column_level_failed_validations_counter += ret
+                    if not self.settings['resume_on_found_validation_error'] and ret == 1:
+                        return 0
+                LOGGER.info('Evaluation of all column validation rules finished')
+
             except InvalidConfigException as conf_err:
                 LOGGER.error('File %s cannot be validated, '
                              'config file has issues, %s',
