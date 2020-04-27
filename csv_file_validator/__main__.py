@@ -274,17 +274,29 @@ class ValidationRunner:
         :param file_name:
         :return:
         """
+        _exc = str()
+
         try:
             self.setup_file_run(file_name)
-            self.process_file_level_validations()
-            self.process_column_level_validations()
-            self.report_success()
-            return 0
         except Exception as val_err:
-            self.report_failure(val_err)
+            _exc = str(val_err) + '; '
+        try:
+            self.process_file_level_validations()
+        except Exception as val_err:
+            _exc += str(val_err) + '; '
+        try:
+            self.process_column_level_validations()
+        except Exception as val_err:
+            _exc += str(val_err) + ';'
+
+        self.close_file()
+
+        if _exc:
+            self.report_failure(_exc)
             return 1
-        finally:
-            self.close_file()
+
+        self.report_success()
+        return 0
 
 
 if __name__ == '__main__':
