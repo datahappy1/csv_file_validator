@@ -304,8 +304,8 @@ class ValidationRunner:
                 InvalidConfigException) as halt_flow_exc:
             self.close_file_report_failure(halt_flow_exc)
             return 1
-        except FoundValidationErrorsException as found_validation_errors_exc:
-            _runner_accumulated_exc += str(found_validation_errors_exc)
+        except FoundValidationErrorsException as found_validation_errors_continue_flow_exc:
+            _runner_accumulated_exc += str(found_validation_errors_continue_flow_exc)
 
         try:
             self.process_column_level_validations()
@@ -314,8 +314,8 @@ class ValidationRunner:
                 InvalidLineColumnCountException) as halt_flow_exc:
             self.close_file_report_failure(halt_flow_exc)
             return 1
-        except FoundValidationErrorsException as found_validation_errors_exc:
-            _runner_accumulated_exc += '; ' + str(found_validation_errors_exc)
+        except FoundValidationErrorsException as found_validation_errors_continue_flow_exc:
+            _runner_accumulated_exc += '; ' + str(found_validation_errors_continue_flow_exc)
 
         if _runner_accumulated_exc:
             self.close_file_report_failure(_runner_accumulated_exc)
