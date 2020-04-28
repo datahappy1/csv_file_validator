@@ -181,13 +181,13 @@ class ValidationRunner:
                 self.file_level_failed_validations_counter = ret
                 if self.settings['raise_exception_and_halt_on_first_failed_validation'] \
                         and ret == 1:
-                    raise FoundFirstFailedValidationErrorException('Evaluation of a '
-                                                                   'validation rule failed')
+                    raise FoundFirstFailedValidationErrorException('Evaluation of a file '
+                                                                   'level validation rule '
+                                                                   'failed')
                 LOGGER.info('Evaluation of all file validation rules finished')
 
             except InvalidConfigException as conf_err:
-                LOGGER.error('File %s cannot be validated, '
-                             'config file has issues, %s',
+                LOGGER.error('File %s cannot be validated, config file has issues, %s',
                              self.file_name, conf_err)
                 raise conf_err
 
@@ -224,13 +224,13 @@ class ValidationRunner:
                     self.column_level_failed_validations_counter += ret
                     if self.settings['raise_exception_and_halt_on_first_failed_validation'] \
                             and ret == 1:
-                        raise FoundFirstFailedValidationErrorException('Evaluation of a '
-                                                                       'validation rule failed')
+                        raise FoundFirstFailedValidationErrorException('Evaluation of a column '
+                                                                       'level validation rule '
+                                                                       'failed')
                 LOGGER.info('Evaluation of all column validation rules finished')
 
             except InvalidConfigException as conf_err:
-                LOGGER.error('File %s cannot be validated, '
-                             'config file has issues, %s',
+                LOGGER.error('File %s cannot be validated, config file has issues, %s',
                              self.file_name, conf_err)
                 raise conf_err
             except InvalidLineColumnCountException as col_count_err:
@@ -261,12 +261,6 @@ class ValidationRunner:
         """
         LOGGER.info('Failed to validate file %s because of %s',
                     self.file_name, val_err.__repr__())
-        LOGGER.info('Validation of %s finished with: '
-                    '%s failed file level validations ,'
-                    '%s failed column level validations',
-                    self.file_name,
-                    self.file_level_failed_validations_counter,
-                    self.column_level_failed_validations_counter)
 
     def close_file(self):
         """
@@ -300,22 +294,20 @@ class ValidationRunner:
 
         try:
             self.process_file_level_validations()
-        except (FoundFirstFailedValidationErrorException,
-                InvalidConfigException) as halt_flow_exc:
+        except (FoundFirstFailedValidationErrorException, InvalidConfigException) as halt_flow_exc:
             self.close_file_report_failure(halt_flow_exc)
             return 1
         except FoundValidationErrorsException as found_validation_errors_continue_flow_exc:
-            _runner_accumulated_exc += str(found_validation_errors_continue_flow_exc)
+            _runner_accumulated_exc += str(found_validation_errors_continue_flow_exc) + '; '
 
         try:
             self.process_column_level_validations()
-        except (FoundFirstFailedValidationErrorException,
-                InvalidConfigException,
+        except (FoundFirstFailedValidationErrorException, InvalidConfigException,
                 InvalidLineColumnCountException) as halt_flow_exc:
             self.close_file_report_failure(halt_flow_exc)
             return 1
         except FoundValidationErrorsException as found_validation_errors_continue_flow_exc:
-            _runner_accumulated_exc += '; ' + str(found_validation_errors_continue_flow_exc)
+            _runner_accumulated_exc += str(found_validation_errors_continue_flow_exc)
 
         if _runner_accumulated_exc:
             self.close_file_report_failure(_runner_accumulated_exc)
