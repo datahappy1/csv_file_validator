@@ -23,7 +23,7 @@ class TestsFunctional:
         obj = ValidationRunner(parsed_config, settings)
         result = obj.run(args['file_loc'])
 
-        assert result == 1
+        assert result == 0
 
     def test_correct_file_without_header(self):
         args = {'file_loc': os.getcwd()+'/files/csv/without_header/SalesJan2009_without_header_correct_file.csv',
