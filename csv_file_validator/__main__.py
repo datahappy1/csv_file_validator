@@ -11,8 +11,8 @@ from csv_file_validator.validation import SetupValidation, SetupFile, \
     ValidateFileLevel, ValidateColumnLevel
 from csv_file_validator.exceptions import InvalidSettingsException, \
     InvalidConfigException, InvalidLineColumnCountException, \
-    InvalidFileLocationException, FirstFailedValidationException, \
-    ValidationRunErrorException
+    InvalidFileLocationException, FoundFirstFailedValidationErrorException, \
+    FoundValidationErrorsException
 
 # set logging
 LOGGING_LEVEL = logging.DEBUG
@@ -38,9 +38,11 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
     if not parser.has_option('project_scoped_settings', 'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
         raise InvalidSettingsException("missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
                                        "in the section project_scoped_settings in settings.conf")
-    if not parser.has_option('project_scoped_settings', 'RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION'):
-        raise InvalidSettingsException("missing RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION option "
-                                       "in the section project_scoped_settings in settings.conf")
+    if not parser.has_option('project_scoped_settings',
+                             'RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION'):
+        raise InvalidSettingsException(
+            "missing RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION option "
+            "in the section project_scoped_settings in settings.conf")
 
     for name, value in parser.items('project_scoped_settings'):
         if value in ('True', 'true'):
@@ -143,14 +145,16 @@ class ValidationRunner:
 
         LOGGER.info('Validation of %s started', self.file_name)
 
-        if self.settings.get('skip_column_validations_on_empty_file') not in (True, False):
+        if self.settings.get('skip_column_validations_on_empty_file') \
+                not in (True, False):
             LOGGER.info('SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE in settings.conf invalid, '
                         'setting value to False and continuing')
             self.settings['skip_column_validations_on_empty_file'] = False
 
-        if self.settings.get('raise_exception_and_halt_on_first_failed_validation') not in (True, False):
-            LOGGER.info('RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION in settings.conf invalid, '
-                        'setting value to False and continuing')
+        if self.settings.get('raise_exception_and_halt_on_first_failed_validation') \
+                not in (True, False):
+            LOGGER.info('RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION '
+                        'in settings.conf invalid, setting value to False and continuing')
             self.settings['raise_exception_and_halt_on_first_failed_validation'] = False
 
         return 0
@@ -177,7 +181,8 @@ class ValidationRunner:
                 self.file_level_failed_validations_counter = ret
                 if self.settings['raise_exception_and_halt_on_first_failed_validation'] \
                         and ret == 1:
-                    raise FirstFailedValidationException('Evaluation of a validation rule failed')
+                    raise FoundFirstFailedValidationErrorException('Evaluation of a '
+                                                                   'validation rule failed')
                 LOGGER.info('Evaluation of all file validation rules finished')
 
             except InvalidConfigException as conf_err:
@@ -187,9 +192,9 @@ class ValidationRunner:
                 raise conf_err
 
         if self.file_level_failed_validations_counter > 0:
-            raise ValidationRunErrorException(f'Evaluation of '
-                                           f'{self.file_level_failed_validations_counter} '
-                                           f'file validation rule(s) failed')
+            raise FoundValidationErrorsException(f'Evaluation of '
+                                                 f'{self.file_level_failed_validations_counter} '
+                                                 f'file validation rule(s) failed')
 
         return 0
 
@@ -219,7 +224,8 @@ class ValidationRunner:
                     self.column_level_failed_validations_counter += ret
                     if self.settings['raise_exception_and_halt_on_first_failed_validation'] \
                             and ret == 1:
-                        raise FirstFailedValidationException('Evaluation of a validation rule failed')
+                        raise FoundFirstFailedValidationErrorException('Evaluation of a '
+                                                                       'validation rule failed')
                 LOGGER.info('Evaluation of all column validation rules finished')
 
             except InvalidConfigException as conf_err:
@@ -234,9 +240,9 @@ class ValidationRunner:
                 raise col_count_err
 
         if self.column_level_failed_validations_counter > 0:
-            raise ValidationRunErrorException(f'Evaluation of '
-                                           f'{self.column_level_failed_validations_counter} '
-                                           f'column validation rule(s) failed')
+            raise FoundValidationErrorsException(f'Evaluation of '
+                                                 f'{self.column_level_failed_validations_counter} '
+                                                 f'column validation rule(s) failed')
 
         return 0
 
@@ -286,29 +292,30 @@ class ValidationRunner:
         """
         try:
             self.setup_file_run(file_name)
-        except (InvalidConfigException, Exception) as val_err:
-            self.report_failure(val_err)
+        except InvalidConfigException as invalid_config_exc:
+            self.report_failure(invalid_config_exc)
             return 1
 
         _runner_accumulated_exc = str()
 
         try:
             self.process_file_level_validations()
-        except (FirstFailedValidationException, InvalidConfigException,
-                Exception) as ffv_exc:
-            self.close_file_report_failure(ffv_exc)
+        except (FoundFirstFailedValidationErrorException,
+                InvalidConfigException) as halt_flow_exc:
+            self.close_file_report_failure(halt_flow_exc)
             return 1
-        except ValidationRunErrorException as vre_exc:
-            _runner_accumulated_exc += str(vre_exc)
+        except FoundValidationErrorsException as found_validation_errors_exc:
+            _runner_accumulated_exc += str(found_validation_errors_exc)
 
         try:
             self.process_column_level_validations()
-        except (FirstFailedValidationException,InvalidConfigException,
-                InvalidLineColumnCountException, Exception) as ffv_exc:
-            self.close_file_report_failure(ffv_exc)
+        except (FoundFirstFailedValidationErrorException,
+                InvalidConfigException,
+                InvalidLineColumnCountException) as halt_flow_exc:
+            self.close_file_report_failure(halt_flow_exc)
             return 1
-        except ValidationRunErrorException as vre_exc:
-            _runner_accumulated_exc += '; ' + str(vre_exc)
+        except FoundValidationErrorsException as found_validation_errors_exc:
+            _runner_accumulated_exc += '; ' + str(found_validation_errors_exc)
 
         if _runner_accumulated_exc:
             self.close_file_report_failure(_runner_accumulated_exc)
