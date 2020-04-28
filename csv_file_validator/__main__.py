@@ -34,10 +34,15 @@ def prepare_settings(conf_file_loc='settings.conf') -> dict:
     parser.read(conf_file_loc)
 
     if not parser.has_section('project_scoped_settings'):
-        raise InvalidSettingsException("missing project_scoped_settings section in settings.conf")
-    if not parser.has_option('project_scoped_settings', 'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
-        raise InvalidSettingsException("missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
-                                       "in the section project_scoped_settings in settings.conf")
+        raise InvalidSettingsException(
+            "missing project_scoped_settings section in settings.conf")
+
+    if not parser.has_option('project_scoped_settings',
+                             'SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE'):
+        raise InvalidSettingsException(
+            "missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
+            "in the section project_scoped_settings in settings.conf")
+
     if not parser.has_option('project_scoped_settings',
                              'RAISE_EXCEPTION_AND_HALT_ON_FIRST_FAILED_VALIDATION'):
         raise InvalidSettingsException(
@@ -139,9 +144,9 @@ class ValidationRunner:
 
         try:
             self.file_obj = SetupFile(self.config, self.file_name)
-        except Exception as err:
-            LOGGER.error('File %s setup raised issues, %s', self.file_name, err)
-            raise err
+        except Exception as exc:
+            LOGGER.error('File %s setup raised issues, %s', self.file_name, exc)
+            raise exc
 
         LOGGER.info('Validation of %s started', self.file_name)
 
@@ -259,7 +264,7 @@ class ValidationRunner:
         report failure method
         :return:
         """
-        LOGGER.info('Failed to validate file %s because of %s',
+        LOGGER.info('Failed to validate file %s , reason: %s',
                     self.file_name, val_err.__repr__())
 
     def close_file(self):
