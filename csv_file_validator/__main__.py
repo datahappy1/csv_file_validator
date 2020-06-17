@@ -329,7 +329,6 @@ if __name__ == '__main__':
     PREPARED_ARGS = prepare_args()
     CONFIG = PREPARED_ARGS['config']
     FILE_LOCATION = PREPARED_ARGS['file_loc']
-
     VALIDATION_RUNNER = ValidationRunner(CONFIG, SETTINGS)
     for file in FILE_LOCATION:
         VALIDATION_RUNNER.run(file)

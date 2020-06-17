@@ -182,6 +182,7 @@ class SetupFile(SetupValidation):
             return True
         return False
 
+
 class ValidateFileLevel(SetupFile):
     """
     Validate file class
@@ -295,22 +296,18 @@ class ValidateColumnLevel(SetupFile):
                                                       f'actual column count: '
                                                       f'{len(row)}')
 
-            if self.file_header:
+            if self.file_header and _int_row_counter > 1:
                 # if file contains header, yield row number and column names with values
                 # row number,{(column name 1, value), (column name 2),..}
-                # or if the file header already passed through the generator,
-                # yield such row value to the validations to capture erroneous
-                # files having multiple headers as these header values
-                # should not pass the validations
-                if self.file_header != row or _int_row_counter > 1:
-                    yield _int_row_counter, dict(zip(self.file_header, row))
-                else:
-                    pass
-
-            else:
+                yield _int_row_counter, dict(zip(self.file_header, row))
+            elif not self.file_header:
                 # if file is without header, yield row number column indexes with values
                 # row number,{(0, value), (1, value),..}
                 yield _int_row_counter, dict(zip(self.column_level_validations, row))
+            else:
+                # file header row so continue, header should be checked separately in
+                # file_validation_rules.file_header_column_names
+                continue
 
     def validate_line_values(self, line, idx) -> int:
         """
