@@ -219,7 +219,7 @@ def my_new_validation_function(kwargs):
 ```
 - the kwarg `validation_value` is a value from the `config.json` file related to the specific validation function 
 >the name of the new validation function has to be equal with the validation key for a column validation in your `config.json`, in order to use
->`my_new_validation_function` , setup config for example like this: 
+>`my_new_validation_function` , add into `config.json` your column, rule and the validation value mapping like this: 
 ```json
 "my_column_name": {
     "my_new_validation_function": "some_validation_value"
