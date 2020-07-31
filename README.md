@@ -195,17 +195,30 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
 - `-cfg` <string: mandatory> configuration json file location absolute path
 
-#### how to add custom validation rule:
-- prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `logging_decorator` like 
+#### how to add custom column validation rule:
+- column validation rule interface: ![](/docs/img/my_new_validation_function_interface_diagram.png)
+
+- prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `@logging_decorator` like this:
 ```python
 @logging_decorator 
 def my_new_validation_function(kwargs):
-    if kwargs.get('validation_value') == 'a': # your validation condition success returns 0
+    # example condition that validates the exact match of a validation_value and a column_value:
+    if kwargs.get('validation_value') == kwargs.get('column_value'): 
+        # your validation condition success returns 0
         return 0
     # your validation condition fail returns 1     
     return 1
 ```
-- this function has to return 0 on successful validation, 1 on a failed validation
+- the kwarg `validation_value` is a value from the `config.json` file related to the specific validation function 
+>the name of the new validation function has to be equal with the validation key for a column validation in your `config.json`, in order to use
+>`my_new_validation_function` , setup config for example like this: 
+```json
+"my_column_name": {
+    "my_new_validation_function": "some_validation_value"
+}
+```
+- the kwarg `column_value` is the value in the corresponding column in the .csv file being validated
+- this function has to return `0` on successful validation and `1` on a failed validation
 - add your function to the registered validation keys - functions mapping dictionary `attribute_func_map` located in `/csv_file_validator/validation.py` in the `get_validation_function` function like:
 ```python
 "my_new_validation_function": validation_funcs.my_new_validation_function
