@@ -1,6 +1,15 @@
 # csv_file_validator
 ### Python 3+ CSV file validation tool 
 
+- [what this tool can do](#what-this-tool-can-do)
+- [validation schema](#validation-schema)
+  1) [validation schema for a file with a header](#validation-schema-for-a-file-with-a-header)
+  2) [validation schema for a file without a header](#validation-schema-for-a-file-without-a-header)
+- [validation rules](#validation-rules)
+- [how to install & run](#how-to-install--run)
+  1) [arguments needed](#arguments-needed)
+- [how to add a custom column validation rule](#how-to-add-a-custom-column-validation-rule)
+
 #### what this tool can do:
 The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema as a json file and a file path of the file to be validated, or a folder path to validate multiple files in one run against the provided validation schema.  
 
@@ -67,12 +76,11 @@ Mandatory objects in the validation schema json are:
 - and at least one defined rule for at least one of the validation types: `file_validation_rules` and `column_validation_rules`
 
 Optional objects in the validation schema json are:
-- optional key in the file_metadata object is for csv quote character:
-  - defining doublequotes example:
+- in the `file_metadata` object: 
+  - optional key in the file_metadata object is to define the csv quote character - using doublequotes example:
     ```json
     "file_value_quote_char": '"'
     ```
-
 
 ##### Validation schema for a file with a header:
 If validating a file that has a header, we have to set the `file_has_header` key to `true` and define the column names in the `column validation rules`.
@@ -195,7 +203,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
 - `-cfg` <string: mandatory> configuration json file location absolute path
 
-#### how to add custom column validation rule:
+#### how to add a custom column validation rule:
 - column validation rule interface: ![](/docs/img/my_new_validation_function_interface_diagram.png)
 
 - prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `@logging_decorator` like this:
