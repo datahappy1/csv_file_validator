@@ -44,12 +44,15 @@ def logging_decorator(func):
     def wrapper_decorator(**kwargs):
         try:
             validation_result = func(**kwargs)
-        except Exception as exc:
-            # in case validation function raised exception,
+        except (ValueError, TypeError, KeyError, IndexError, AttributeError, ArithmeticError) \
+                as err:
+            # in case validation function raised Error,
             # we still need to add one more failed validation
             # for the __main__ error counter
             validation_result = 1
-            kwargs["Exception"] = exc
+            kwargs["Exception"] = err
+        except Exception as exc:
+            raise RuntimeError(f'Unexpected Exception {exc} in {func.__name__}')
 
         if validation_result != 0:
             _get_logged_error(func_name=func.__name__, **kwargs)

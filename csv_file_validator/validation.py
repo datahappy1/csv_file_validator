@@ -33,12 +33,12 @@ def get_validation_function(attribute, **kwargs):
 
     for func_name, func in attribute_func_map.items():
         if func_name == attribute:
-            ret = func(**kwargs)
+            return_value = func(**kwargs)
             break
     else:
         raise InvalidConfigException(f'function {attribute} not found in '
                                      f'function_caller attribute_func_map')
-    return ret
+    return return_value
 
 
 class SetupValidation:
@@ -48,6 +48,9 @@ class SetupValidation:
 
     def __init__(self, config):
         self.config = config
+
+    def __str__(self):
+        return 'Config(config='+self.config+')'
 
     def get_validated_config(self) -> Union[dict, InvalidConfigException]:
         """
@@ -84,10 +87,18 @@ class SetupFile(SetupValidation):
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
         self.file_header = self._get_file_header()
-        self.file_data_row_count = self._get_count_of_rows_from_gen()
+
+    @property
+    def file_data_row_count(self):
+        """
+        file data row count property
+        :return:
+        """
+        _file_data_row_count = self._get_count_of_rows_from_gen()
         if self.file_header and self.file_header != ['']:
             # we subtract 1 from the file_row_count because of the header row
-            self.file_data_row_count -= 1
+            _file_data_row_count -= 1
+        return _file_data_row_count
 
     @staticmethod
     def _open_file_handler(file_name):
@@ -119,7 +130,7 @@ class SetupFile(SetupValidation):
         reader = csv.reader(self.file_handler,
                             delimiter=self.file_value_separator,
                             quotechar=self.file_value_quote_char)
-        for row in reader:
+        for _ in reader:
             yield
 
     def _get_count_of_rows_from_gen(self) -> int:
@@ -127,11 +138,11 @@ class SetupFile(SetupValidation):
         method to get count of rows from _file_rowcount_generator
         :return:
         """
-        ret = len(list(self._file_rowcount_generator()))
+        row_count = len(list(self._file_rowcount_generator()))
 
         self.reset_file_handler()
 
-        return ret
+        return row_count
 
     def _get_file_header(self) -> list:
         """
