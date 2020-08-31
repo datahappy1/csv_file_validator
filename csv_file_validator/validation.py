@@ -50,7 +50,7 @@ class SetupValidation:
         self.config = config
 
     def __str__(self):
-        return 'Config(config='+self.config+')'
+        return str(self.config)
 
     def get_validated_config(self) -> Union[dict, InvalidConfigException]:
         """
@@ -94,11 +94,11 @@ class SetupFile(SetupValidation):
         file data row count property
         :return:
         """
-        _file_data_row_count = self._get_count_of_rows_from_gen()
+        file_data_row_count = self._get_count_of_rows_from_gen()
         if self.file_header and self.file_header != ['']:
             # we subtract 1 from the file_row_count because of the header row
-            _file_data_row_count -= 1
-        return _file_data_row_count
+            file_data_row_count -= 1
+        return file_data_row_count
 
     @staticmethod
     def _open_file_handler(file_name):
