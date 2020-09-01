@@ -41,6 +41,15 @@ def get_validation_function(attribute, **kwargs):
     return return_value
 
 
+def open_file_handler(file_name):
+    """
+    function returning opened file handler
+    :param file_name:
+    :return:
+    """
+    return open(file_name, mode='r', encoding='utf8')
+
+
 class SetupValidation:
     """
     Setup Validation class
@@ -81,16 +90,44 @@ class SetupFile(SetupValidation):
     def __init__(self, config, file):
         super().__init__(config)
         self.file_name = file
-        self.file_handler = self._open_file_handler(self.file_name)
+        self.file_handler = open_file_handler(self.file_name)
         self.file_row_terminator = self._get_config_file_metadata_value('file_row_terminator')
         self.file_value_separator = self._get_config_file_metadata_value('file_value_separator')
         self.file_value_quote_char = self._get_config_file_metadata_value('file_value_quote_char')
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
         self.file_header = self._get_file_header()
 
-    @staticmethod
-    def _open_file_handler(file_name):
-        return open(file_name, mode='r', encoding='utf8')
+    @property
+    def file_with_configured_header_has_empty_header(self) -> bool:
+        """
+        method checking if we can validate the file based on its content
+        :return:
+        """
+        if self.file_header == ['']:
+            return True
+        return False
+
+    @property
+    def file_data_row_count(self):
+        """
+        file data row count property
+        :return:
+        """
+        file_data_row_count = self._get_count_of_rows_from_gen()
+        if self.file_header and self.file_header != ['']:
+            # we subtract 1 from the file_row_count because of the header row
+            file_data_row_count -= 1
+        return file_data_row_count
+
+    @property
+    def file_has_no_data_rows(self) -> bool:
+        """
+        method checking if the file has any rows (besides header row if configured)
+        :return:
+        """
+        if self.file_data_row_count == 0:
+            return True
+        return False
 
     def _get_config_file_metadata_all_items(self) -> dict:
         """
@@ -160,38 +197,6 @@ class SetupFile(SetupValidation):
         :return:
         """
         self.file_handler.close()
-
-    @property
-    def file_with_configured_header_has_empty_header(self) -> bool:
-        """
-        method checking if we can validate the file based on its content
-        :return:
-        """
-        if self.file_header == ['']:
-            return True
-        return False
-
-    @property
-    def file_data_row_count(self):
-        """
-        file data row count property
-        :return:
-        """
-        file_data_row_count = self._get_count_of_rows_from_gen()
-        if self.file_header and self.file_header != ['']:
-            # we subtract 1 from the file_row_count because of the header row
-            file_data_row_count -= 1
-        return file_data_row_count
-
-    @property
-    def file_has_no_data_rows(self) -> bool:
-        """
-        method checking if the file has any rows (besides header row if configured)
-        :return:
-        """
-        if self.file_data_row_count == 0:
-            return True
-        return False
 
 
 class ValidateFileLevel(SetupFile):
