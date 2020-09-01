@@ -88,18 +88,6 @@ class SetupFile(SetupValidation):
         self.file_size = os.path.getsize(self.file_name) / 1024 / 1024
         self.file_header = self._get_file_header()
 
-    @property
-    def file_data_row_count(self):
-        """
-        file data row count property
-        :return:
-        """
-        file_data_row_count = self._get_count_of_rows_from_gen()
-        if self.file_header and self.file_header != ['']:
-            # we subtract 1 from the file_row_count because of the header row
-            file_data_row_count -= 1
-        return file_data_row_count
-
     @staticmethod
     def _open_file_handler(file_name):
         return open(file_name, mode='r', encoding='utf8')
@@ -182,6 +170,18 @@ class SetupFile(SetupValidation):
         if self.file_header == ['']:
             return True
         return False
+
+    @property
+    def file_data_row_count(self):
+        """
+        file data row count property
+        :return:
+        """
+        file_data_row_count = self._get_count_of_rows_from_gen()
+        if self.file_header and self.file_header != ['']:
+            # we subtract 1 from the file_row_count because of the header row
+            file_data_row_count -= 1
+        return file_data_row_count
 
     @property
     def file_has_no_data_rows(self) -> bool:
