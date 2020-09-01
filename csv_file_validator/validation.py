@@ -108,7 +108,7 @@ class SetupFile(SetupValidation):
         return False
 
     @property
-    def file_data_row_count(self):
+    def file_data_row_count(self) -> int:
         """
         file data row count property
         :return:
