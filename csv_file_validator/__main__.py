@@ -181,7 +181,7 @@ class ValidationRunner:
                 ret = validation_file_obj.validate_file()
                 self.file_level_failed_validations_counter = ret
                 if self.settings['raise_exception_and_halt_on_first_failed_validation'] \
-                        and ret == 1:
+                        and ret > 0:
                     raise FoundFirstFailedValidationErrorException('Evaluation of a file '
                                                                    'level validation rule '
                                                                    'failed')
@@ -224,7 +224,7 @@ class ValidationRunner:
                     ret = validation_column_obj.validate_line_values(line, idx)
                     self.column_level_failed_validations_counter += ret
                     if self.settings['raise_exception_and_halt_on_first_failed_validation'] \
-                            and ret == 1:
+                            and ret > 0:
                         raise FoundFirstFailedValidationErrorException('Evaluation of a column '
                                                                        'level validation rule '
                                                                        'failed')
