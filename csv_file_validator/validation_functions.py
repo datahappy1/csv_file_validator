@@ -11,7 +11,7 @@ from dateutil import parser
 LOGGER = logging.getLogger(__name__)
 
 
-def _get_logged_error(func_name, **kwargs) -> LOGGER:
+def _get_logged_error(func_name, **kwargs):
     """
     function responsible for handling the logging of the failed validations
     :param func_name:
