@@ -2,7 +2,6 @@
 main module
 """
 import os
-import sys
 import json
 import logging
 from argparse import ArgumentParser
@@ -14,12 +13,9 @@ from csv_file_validator.exceptions import InvalidSettingsException, \
     InvalidFileLocationException, FoundFirstFailedValidationErrorException, \
     FoundValidationErrorsException
 
-# set logging
 LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL)
 LOGGER = logging.getLogger(__name__)
-# mute traceback
-sys.tracebacklimit = 0
 
 
 def prepare_settings(conf_file_loc='settings.conf') -> dict:
