@@ -27,9 +27,9 @@ class InvalidLineColumnCountException(Exception):
     """
 
 
-class FoundFirstFailedValidationErrorException(Exception):
+class FoundValidationErrorException(Exception):
     """
-    Found first failed Validation error Exception custom exception type
+    Found validation error Exception custom exception type
     """
 
 

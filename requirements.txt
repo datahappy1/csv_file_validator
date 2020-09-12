@@ -1,2 +1,2 @@
-python-dateutil
+python-dateutil==2.7.5
 pytest
