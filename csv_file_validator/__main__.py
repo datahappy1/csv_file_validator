@@ -261,7 +261,7 @@ class ValidationRunner:
         :return:
         """
         LOGGER.info('Failed to validate file %s , reason: %s',
-                    self.file_name, val_err.__repr__())
+                    self.file_name, val_err.__str__())
 
     def close_file(self):
         """
@@ -291,7 +291,7 @@ class ValidationRunner:
             self.report_failure(invalid_config_exc)
             return 1
 
-        _runner_accumulated_exc = str()
+        _runner_accumulated_errors = str()
 
         try:
             self.process_file_level_validations()
@@ -299,7 +299,7 @@ class ValidationRunner:
             self.close_file_report_failure(halt_flow_exc)
             return 1
         except FoundValidationErrorsException as found_validation_errors_continue_flow_exc:
-            _runner_accumulated_exc += str(found_validation_errors_continue_flow_exc) + '; '
+            _runner_accumulated_errors += str(found_validation_errors_continue_flow_exc) + '; '
 
         try:
             self.process_column_level_validations()
@@ -308,10 +308,10 @@ class ValidationRunner:
             self.close_file_report_failure(halt_flow_exc)
             return 1
         except FoundValidationErrorsException as found_validation_errors_continue_flow_exc:
-            _runner_accumulated_exc += str(found_validation_errors_continue_flow_exc)
+            _runner_accumulated_errors += str(found_validation_errors_continue_flow_exc)
 
-        if _runner_accumulated_exc:
-            self.close_file_report_failure(_runner_accumulated_exc)
+        if _runner_accumulated_errors:
+            self.close_file_report_failure(_runner_accumulated_errors)
             return 1
 
         self.close_file()

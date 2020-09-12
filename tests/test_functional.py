@@ -171,8 +171,7 @@ class TestsFunctional:
 
         obj = ValidationRunner(parsed_config, settings)
         result = obj.run(args['file_loc'])
-
-        assert "InvalidConfigException('Column validations set in the config, but none of the expected columns found in the file')" in caplog.text
+        assert "Column validations set in the config, but none of the expected columns found in the file" in caplog.text
         assert result == 1
 
     def test_inconsistent_file_with_header(self, caplog):
