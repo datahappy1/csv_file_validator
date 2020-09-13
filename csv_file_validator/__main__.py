@@ -156,18 +156,6 @@ class ValidationRunner:
         """
         file_obj.close_file_handler()
 
-    @staticmethod
-    def close_file_report_failure(file_name, file_obj, exc):
-        """
-        close file and report failure method
-        :param file_name:
-        :param file_obj:
-        :param exc:
-        :return:
-        """
-        ValidationRunner.close_file(file_obj)
-        ValidationRunner.report_failure(file_name, exc)
-
     def __init__(self, config, settings):
         self.config = self.validate_config(config)
         self.settings = settings
@@ -292,6 +280,17 @@ class ValidationRunner:
                                                  f'column validation rule(s) failed')
 
         return 0
+
+    def close_file_report_failure(self, file_name, file_obj, exc):
+        """
+        close file and report failure method
+        :param file_name:
+        :param file_obj:
+        :param exc:
+        :return:
+        """
+        self.close_file(file_obj)
+        self.report_failure(file_name, exc)
 
     def run(self, file_name):
         """
