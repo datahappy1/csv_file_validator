@@ -1,19 +1,19 @@
 # csv_file_validator
-### Python 3+ CSV file validation tool 
+## Python 3+ CSV file validation tool 
 
 - [What this tool can do](#what-this-tool-can-do)
 - [Validation schema](#validation-schema)
-  1) [Validation schema for a file with a header](#validation-schema-for-a-file-with-a-header)
-  2) [Validation schema for a file without a header](#validation-schema-for-a-file-without-a-header)
+  - [Validation schema for a file with a header](#validation-schema-for-a-file-with-a-header)
+  - [Validation schema for a file without a header](#validation-schema-for-a-file-without-a-header)
 - [Validation rules](#validation-rules)
 - [How to install & run](#how-to-install--run)
-  1) [Arguments needed](#arguments-needed)
+  - [Arguments needed](#arguments-needed)
 - [How to add a custom column validation rule](#how-to-add-a-custom-column-validation-rule)
 
-#### What this tool can do:
+### What this tool can do:
 The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema as a json file and a file path of the file to be validated, or a folder path to validate multiple files in one run against the provided validation schema.  
 
-##### Validation schema:
+### Validation schema:
 Validation schema is a json file. Let's have a closer look at a real life example file.
 ```json
 {
@@ -81,7 +81,7 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
     "file_value_quote_char": '"'
     ```
 
-##### Validation schema for a file with a header:
+#### Validation schema for a file with a header:
 If validating a file that has a header, we have to set the `file_has_header` key to `true` and define the column names in the `column validation rules`.
 
 ```json
@@ -135,7 +135,7 @@ If validating a file that has a header, we have to set the `file_has_header` key
 }
 ```
 
-##### Validation schema for a file without a header:
+#### Validation schema for a file without a header:
 If validating a file that has no header, we have to set the `file_has_header` key to `false` and define the column indexes in the `column validation rules` so they're starting from 0 for the first column.
 ```json
 {
@@ -172,7 +172,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
    }
 }
 ```
-#### Validation rules:
+### Validation rules:
 - File level validation rules:
     - file_name_file_mask : checks file name matches the file mask regex pattern
     - file_extension : checks file extension is an exact match with the provided value
@@ -188,7 +188,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
     - allow_fixed_value : checks column values are an exact match with the provided value
 
 
-#### How to install & run:
+### How to install & run:
 - ideally create and activate a `virtual environment` or `pipenv` in order to safely install dependencies from `requirements.txt` using `pip install -r requirements.txt`
 - Set PYTHONPATH , from Windows CMD for example `set PYTHONPATH=%PYTHONPATH%;C:\csv_file_validator`
 - run using a command for example: `python C:\csv_file_validator\csv_file_validator -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_correct_file.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
@@ -197,12 +197,11 @@ If validating a file that has no header, we have to set the `file_has_header` ke
     - you can set the variable `RAISE_EXCEPTION_AND_HALT_ON_FAILED_VALIDATION` to `True` or `False`, this variable drives the behavior whether the tool stops validations after it hits a failed validation or not
     - you can set the variable `SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE` to `True` or `False`, this variable drives the behavior whether the tool bypass the column level validations on a file that has no rows or not
 
-
-##### arguments needed:
+#### arguments needed:
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
 - `-cfg` <string: mandatory> configuration json file location absolute path
 
-#### How to add a custom column validation rule:
+### How to add a custom column validation rule:
 Column validation rule interface: ![](/docs/img/my_new_validation_function_interface_diagram.png)
 >The keyword argument `validation_value` is the value in the config.json file, describing the allowed values for the validation rule
 
