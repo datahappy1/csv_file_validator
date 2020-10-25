@@ -1,19 +1,19 @@
 # csv_file_validator
 ### Python 3+ CSV file validation tool 
 
-- [what this tool can do](#what-this-tool-can-do)
-- [validation schema](#validation-schema)
-  1) [validation schema for a file with a header](#validation-schema-for-a-file-with-a-header)
-  2) [validation schema for a file without a header](#validation-schema-for-a-file-without-a-header)
-- [validation rules](#validation-rules)
-- [how to install & run](#how-to-install--run)
-  1) [arguments needed](#arguments-needed)
-- [how to add a custom column validation rule](#how-to-add-a-custom-column-validation-rule)
+- [What this tool can do](#what-this-tool-can-do)
+- [Validation schema](#validation-schema)
+  1) [Validation schema for a file with a header](#validation-schema-for-a-file-with-a-header)
+  2) [Validation schema for a file without a header](#validation-schema-for-a-file-without-a-header)
+- [Validation rules](#validation-rules)
+- [How to install & run](#how-to-install--run)
+  1) [Arguments needed](#arguments-needed)
+- [How to add a custom column validation rule](#how-to-add-a-custom-column-validation-rule)
 
-#### what this tool can do:
+#### What this tool can do:
 The purpose of this tool is to validate comma separated value files. This tool needs the user to provide a validation schema as a json file and a file path of the file to be validated, or a folder path to validate multiple files in one run against the provided validation schema.  
 
-##### validation schema:
+##### Validation schema:
 Validation schema is a json file. Let's have a closer look at a real life example file.
 ```json
 {
@@ -64,8 +64,8 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
    }
 }
 ```
-Mandatory objects in the validation schema json are:
-- `file_metadata` with these 3 keys: 
+**Mandatory** objects in the validation schema json are:
+- `file_metadata` object containing these 3 keys: 
 ```json
    "file_metadata":{
       "file_value_separator":",",
@@ -73,11 +73,10 @@ Mandatory objects in the validation schema json are:
       "file_has_header":true
    },
 ```
-- and at least one defined rule for at least one of the validation types: `file_validation_rules` and `column_validation_rules`
+- at least one defined rule for at least one of the validation types `file_validation_rules`, `column_validation_rules`
 
-Optional objects in the validation schema json are:
-- in the `file_metadata` object: 
-  - optional key in the file_metadata object is to define the csv quote character - using doublequotes example:
+**Optional** objects in the validation schema json are:
+- in the `file_metadata` object, you can define an optional key `file_value_quote_char` to define the csv quote character - using doublequotes example:
     ```json
     "file_value_quote_char": '"'
     ```
@@ -173,7 +172,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
    }
 }
 ```
-#### validation rules:
+#### Validation rules:
 - File level validation rules:
     - file_name_file_mask : checks file name matches the file mask regex pattern
     - file_extension : checks file extension is an exact match with the provided value
@@ -189,7 +188,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
     - allow_fixed_value : checks column values are an exact match with the provided value
 
 
-#### how to install & run:
+#### How to install & run:
 - ideally create and activate a `virtual environment` or `pipenv` in order to safely install dependencies from `requirements.txt` using `pip install -r requirements.txt`
 - Set PYTHONPATH , from Windows CMD for example `set PYTHONPATH=%PYTHONPATH%;C:\csv_file_validator`
 - run using a command for example: `python C:\csv_file_validator\csv_file_validator -fl C:\csv_file_validator\tests\files\csv\with_header\SalesJan2009_with_header_correct_file.csv -cfg C:\csv_file_validator\tests\files\configs\config_with_header.json`
@@ -203,33 +202,32 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 - `-fl` <string: mandatory> single file absolute path or absolute folder location (in case you need to validate multiple files from a directory in one app run)
 - `-cfg` <string: mandatory> configuration json file location absolute path
 
-#### how to add a custom column validation rule:
-- column validation rule interface: ![](/docs/img/my_new_validation_function_interface_diagram.png)
+#### How to add a custom column validation rule:
+Column validation rule interface: ![](/docs/img/my_new_validation_function_interface_diagram.png)
+>The keyword argument `validation_value` is the value in the config.json file, describing the allowed values for the validation rule
 
-- prepare your function in `/csv_file_validator/validation_functions.py` module and decorate it with `@logging_decorator` like this:
-```python
-@logging_decorator 
-def my_new_validation_function(kwargs):
-    # example condition that validates the exact match of a validation_value and a column_value:
-    if kwargs.get('validation_value') == kwargs.get('column_value'): 
-        # your validation condition success returns 0
-        return 0
-    # your validation condition fail returns 1     
-    return 1
-```
-- the kwarg `validation_value` is a value from the `config.json` file related to the specific validation function 
->the name of the new validation function has to be equal with the validation key for a column validation rule in your `config.json`, in order to use
->`my_new_validation_function` , add into `config.json` your column, validation function name aka the validation rule and the validation value mapping like this: 
-```json
-"my_column_name": {
-    "my_new_validation_function": "some_validation_value"
-}
-```
-- the kwarg `column_value` is the value in the corresponding column in the .csv file being validated
-- this function has to return `0` on successful validation and `1` on a failed validation
-- add your function to the registered validation keys - functions mapping dictionary `attribute_func_map` located in `/csv_file_validator/validation.py` in the `get_validation_function` function like:
-```python
-"my_new_validation_function": validation_funcs.my_new_validation_function
-```
- - now you can use `my_new_validation_function` in your config json file for validations
- - for defining regex patterns in regex validation rules, check https://regex101.com/
+>The keyword argument `column_value` is the value in the corresponding column in the .csv file being validated
+
+- Create a function in `/csv_file_validator/validation_functions.py` module and decorate it with `@logging_decorator` like this:
+    ```python
+    @logging_decorator 
+    def my_new_validation_function(kwargs):
+        # example condition that validates the exact match of a validation_value and a column_value:
+        if kwargs.get('validation_value') == kwargs.get('column_value'): 
+            # your validation condition success returns 0
+            return 0
+        # your validation condition fail returns 1     
+        return 1
+    ```
+- Setup for a column you wish to evaluate using this new validation rule a validation function to validation value mapping in `config.json`
+    ```json
+    "my_column_name": {
+        "my_new_validation_function": "some_validation_value"
+    }
+    ```
+- Add your function name to the registered validation key functions mapping dictionary `attribute_func_map`. This dictionary is located in `/csv_file_validator/validation.py` file, in the `get_validation_function` function.
+    ```python
+    "my_new_validation_function": validation_funcs.my_new_validation_function
+    ```
+
+- If you need to define regex patterns in regex validation rules, check https://regex101.com/
