@@ -218,15 +218,14 @@ Column validation rule interface: ![](/docs/img/my_new_validation_function_inter
         # your validation condition fail returns 1     
         return 1
     ```
-- Setup for a column you wish to evaluate using this new validation rule a validation function to validation value mapping in `config.json`
+- Add your function name to the registered validation key functions mapping dictionary `attribute_func_map`. This dictionary is located in `/csv_file_validator/validation.py` file, in the `get_validation_function` function.
+    ```python
+    "my_new_validation_function": validation_funcs.my_new_validation_function
+    ```
+- For a column you wish to evaluate using this new validation rule, setup a validation function to validation value mapping in `config.json`
     ```json
     "my_column_name": {
         "my_new_validation_function": "some_validation_value"
     }
     ```
-- Add your function name to the registered validation key functions mapping dictionary `attribute_func_map`. This dictionary is located in `/csv_file_validator/validation.py` file, in the `get_validation_function` function.
-    ```python
-    "my_new_validation_function": validation_funcs.my_new_validation_function
-    ```
-
 - If you need to define regex patterns in regex validation rules, check https://regex101.com/
