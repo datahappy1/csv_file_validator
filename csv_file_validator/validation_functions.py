@@ -11,7 +11,7 @@ from dateutil import parser
 LOGGER = logging.getLogger(__name__)
 
 
-def _get_logged_error(func_name, **kwargs):
+def _log_validation_error(func_name, **kwargs):
     """
     function responsible for handling the logging of the failed validations
     :param func_name:
@@ -44,10 +44,10 @@ def logging_decorator(func):
     def wrapper_decorator(**kwargs):
         try:
             validation_result = func(**kwargs)
-        except (ValueError, TypeError, KeyError, IndexError, AttributeError, ArithmeticError) \
-                as err:
+        except (ValueError, TypeError, KeyError, IndexError,
+                AttributeError, ArithmeticError) as err:
             # in case validation function raised Error,
-            # we still need to add one more failed validation
+            # still need to add one more failed validation
             # for the __main__ error counter
             validation_result = 1
             kwargs["Exception"] = err
@@ -55,7 +55,7 @@ def logging_decorator(func):
             raise RuntimeError(f'Unexpected Exception {exc} in {func.__name__}')
 
         if validation_result != 0:
-            _get_logged_error(func_name=func.__name__, **kwargs)
+            _log_validation_error(func_name=func.__name__, **kwargs)
 
         return validation_result
 
