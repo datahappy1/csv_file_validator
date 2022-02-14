@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0eb8fcd1-5d3d-4192-9bbb-d525cb16beb7" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/__main__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/argument_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/argument_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/file.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/file.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/settings_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/settings_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/validation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csv_file_validator/validation_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_file_validator/validation_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -18,7 +12,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf />
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -127,7 +121,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -142,45 +135,13 @@
             </path>
             <path>
               <item name="csv_file_validator" type="b2602c69:ProjectViewProjectNode" />
-              <item name="csv_file_validator" type="462c0819:PsiDirectoryNode" />
-              <item name="tests" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="csv_file_validator" type="b2602c69:ProjectViewProjectNode" />
-              <item name="csv_file_validator" type="462c0819:PsiDirectoryNode" />
-              <item name="tests" type="462c0819:PsiDirectoryNode" />
-              <item name="files" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="csv_file_validator" type="b2602c69:ProjectViewProjectNode" />
-              <item name="csv_file_validator" type="462c0819:PsiDirectoryNode" />
-              <item name="tests" type="462c0819:PsiDirectoryNode" />
-              <item name="files" type="462c0819:PsiDirectoryNode" />
-              <item name="configs" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="csv_file_validator" type="b2602c69:ProjectViewProjectNode" />
-              <item name="csv_file_validator" type="462c0819:PsiDirectoryNode" />
-              <item name="tests" type="462c0819:PsiDirectoryNode" />
-              <item name="files" type="462c0819:PsiDirectoryNode" />
-              <item name="csv" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="csv_file_validator" type="b2602c69:ProjectViewProjectNode" />
-              <item name="csv_file_validator" type="462c0819:PsiDirectoryNode" />
-              <item name="tests" type="462c0819:PsiDirectoryNode" />
-              <item name="files" type="462c0819:PsiDirectoryNode" />
-              <item name="csv" type="462c0819:PsiDirectoryNode" />
-              <item name="with_header" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="csv_file_validator" type="b2602c69:ProjectViewProjectNode" />
               <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -769,12 +730,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="py_test_in_tests - 2022.02.13 at 23h 19m 56s.xml">
-      <configuration name="py.test in tests" configurationId="tests" />
-    </history-entry>
-    <history-entry file="py_test_in_tests - 2022.02.13 at 23h 20m 52s.xml">
-      <configuration name="py.test in tests" configurationId="tests" />
-    </history-entry>
     <history-entry file="py_test_in_tests - 2022.02.13 at 23h 21m 26s.xml">
       <configuration name="py.test in tests" configurationId="tests" />
     </history-entry>
@@ -799,16 +754,22 @@
     <history-entry file="py_test_in_tests - 2022.02.14 at 20h 12m 00s.xml">
       <configuration name="py.test in tests" configurationId="tests" />
     </history-entry>
+    <history-entry file="py_test_in_tests - 2022.02.14 at 20h 23m 50s.xml">
+      <configuration name="py.test in tests" configurationId="tests" />
+    </history-entry>
+    <history-entry file="py_test_in_tests - 2022.02.14 at 20h 32m 16s.xml">
+      <configuration name="py.test in tests" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="754" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18594436" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16398244" />
       <window_info anchor="bottom" id="TODO" order="7" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="10" weight="0.18831168" />
       <window_info anchor="bottom" id="Python Console" order="9" />
-      <window_info active="true" anchor="bottom" id="Run" order="3" visible="true" weight="0.3068182" />
+      <window_info anchor="bottom" id="Run" order="3" weight="0.3409091" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.4107143" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -1009,12 +970,12 @@
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/files/csv/with_header/SalesJan2009_with_header_correct_file.csv">
+      <provider editor-type-id="text-editor" />
       <provider selected="true" editor-type-id="csv-text-editor">
         <state>
           <caret column="113" selection-start-column="113" selection-end-column="113" />
         </state>
       </provider>
-      <provider editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/tests/files/csv/with_header/SalesJan2009_with_header_correct_file_sample.csv">
       <provider selected="true" editor-type-id="csv-text-editor">
@@ -1086,9 +1047,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="100">
           <caret line="281" column="17" lean-forward="true" selection-start-line="281" selection-start-column="17" selection-end-line="281" selection-end-column="17" />
-          <folding>
-            <element signature="e#36#52#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1096,9 +1054,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="214">
           <caret line="40" selection-start-line="40" selection-end-line="40" />
-          <folding>
-            <element signature="e#24#35#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1113,9 +1068,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="218">
           <caret line="66" selection-start-line="66" selection-end-line="66" />
-          <folding>
-            <element signature="e#24#61#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1123,25 +1075,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="218">
           <caret line="98" selection-start-line="98" selection-end-line="98" />
-          <folding>
-            <element signature="e#0#25#1" />
-            <element signature="e#27#50#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/csv_file_validator/__main__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5000">
-          <caret line="261" selection-start-line="261" selection-end-line="261" />
-          <folding>
-            <element signature="e#0#19#1" />
-            <element signature="e#20#34#0" expanded="true" />
-            <element signature="e#859#912#0" />
-            <element signature="e#947#1185#0" />
-            <element signature="e#1021#1103#0" />
-            <element signature="e#1137#1185#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1149,20 +1082,20 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
           <caret line="76" selection-start-line="76" selection-end-line="76" />
-          <folding>
-            <element signature="e#18#51#0" expanded="true" />
-          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/csv_file_validator/__main__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4541">
+          <caret line="261" selection-start-line="261" selection-end-line="261" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/csv_file_validator/file.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="98">
+        <state relative-caret-position="1538">
           <caret line="124" lean-forward="true" selection-start-line="124" selection-end-line="124" />
-          <folding>
-            <element signature="e#0#15#1" />
-            <element signature="e#16#26#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
