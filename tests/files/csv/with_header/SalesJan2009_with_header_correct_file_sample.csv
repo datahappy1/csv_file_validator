@@ -1,0 +1,4 @@
+Transaction_date,Product,Price,Payment_Type,Name,City,State,Country,Account_Created,Last_Login,Latitude,Longitude
+1/2/09 6:17,Product1,1200,Mastercard,carolina,Basildon,England,United Kingdom,1/2/09 6:00,1/2/09 6:08,51.5,-1.1166667
+1/2/09 4:53,Product1,1200,Visa,Betina,Parkville                   ,MO,United States,1/2/09 4:42,1/2/09 7:49,39.195,-94.68194
+1/2/09 13:08,Product1,1200,Mastercard,Federica e Andrea,Astoria                     ,OR,United States,1/1/09 16:21,1/3/09 12:32,46.18806,-123.83

@@ -1,0 +1,41 @@
+{
+  "file_metadata": {
+    "file_value_separator": ",",
+    "file_row_terminator": "\n",
+    "file_value_quote_char": "\"",
+    "file_has_header": false
+  },
+  "file_validation_rules": {
+    "file_name_file_mask": "SalesJ",
+    "file_extension": "csv",
+    "file_size_range": [
+      0,
+      1
+    ],
+    "file_row_count_range": [
+      0,
+      1000
+    ]
+  },
+  "column_validation_rules": {
+    "0": {
+      "allow_data_type": "datetime.%M/%d/%y %H:%S"
+    },
+    "1": {
+      "allow_data_type": "str"
+    },
+    "2": {
+      "allow_int_value_range": [
+        0,
+        100000
+      ],
+      "allow_data_type": "int"
+    },
+    "10": {
+      "allow_float_value_range": [
+        -50.5,
+        155.5
+      ]
+    }
+  }
+}
