@@ -4,21 +4,22 @@ file.py
 import csv
 import os
 from collections.abc import Generator
+from dataclasses import dataclass
 from typing import List, Optional
 
 from csv_file_validator.config import Config
 from csv_file_validator.exceptions import InvalidLineColumnCountException
 
 
+@dataclass
 class CsvFileProperties:
     """
-    csv file properties class
+    csv file format properties class
     """
 
-    def __init__(self, file_row_terminator, file_value_separator, file_value_quote_char):
-        self.file_row_terminator: str = file_row_terminator
-        self.file_value_separator: str = file_value_separator
-        self.file_value_quote_char: str = file_value_quote_char
+    file_row_terminator: str
+    file_value_separator: str
+    file_value_quote_char: str
 
 
 def construct_csv_file_properties(config: Config) -> CsvFileProperties:
