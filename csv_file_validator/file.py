@@ -4,33 +4,37 @@ file.py
 import csv
 import os
 from collections.abc import Generator
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from csv_file_validator.config import Config
-from csv_file_validator.config import get_config_file_metadata_value
 from csv_file_validator.exceptions import InvalidLineColumnCountException
 
 
-def construct_csv_file_properties(config) -> Dict:
+class CsvFileProperties:
+    """
+    csv file properties class
+    """
+
+    def __init__(self, file_row_terminator, file_value_separator, file_value_quote_char):
+        self.file_row_terminator: str = file_row_terminator
+        self.file_value_separator: str = file_value_separator
+        self.file_value_quote_char: str = file_value_quote_char
+
+
+def construct_csv_file_properties(config: Config) -> CsvFileProperties:
     """
     construct csv file properties
     :param config:
     :return:
     """
-    return dict(
-        file_row_terminator=get_config_file_metadata_value(
-            config, "file_row_terminator"
-        ),
-        file_value_separator=get_config_file_metadata_value(
-            config, "file_value_separator"
-        ),
-        file_value_quote_char=get_config_file_metadata_value(
-            config, "file_value_quote_char"
-        ),
+    return CsvFileProperties(
+        file_row_terminator=config.file_metadata.file_row_terminator,
+        file_value_separator=config.file_metadata.file_value_separator,
+        file_value_quote_char=config.file_metadata.file_value_quote_char
     )
 
 
-def get_csv_reader(file_handle, csv_file_properties):
+def get_csv_reader(file_handle, csv_file_properties: CsvFileProperties):
     """
     get csv reader function
     :param file_handle:
@@ -39,8 +43,8 @@ def get_csv_reader(file_handle, csv_file_properties):
     """
     return csv.reader(
         file_handle,
-        delimiter=csv_file_properties["file_value_separator"],
-        quotechar=csv_file_properties["file_value_quote_char"],
+        delimiter=csv_file_properties.file_value_separator,
+        quotechar=csv_file_properties.file_value_quote_char,
     )
 
 
@@ -52,7 +56,7 @@ class File:
     def __init__(self, config: Config, file_name: str):
         self.config: Config = config
         self.file_name: str = file_name
-        self.csv_file_properties: dict = construct_csv_file_properties(self.config)
+        self.csv_file_properties: CsvFileProperties = construct_csv_file_properties(self.config)
         self.file_handle = open(file_name, mode="r", encoding="utf8")
         self.file_size: int = int(os.path.getsize(self.file_name) / 1024 / 1024)
         self.file_header: Optional[List[str]] = self._get_file_header()
@@ -99,8 +103,8 @@ class File:
             :return:
             """
             for _ in get_csv_reader(
-                    file_handle=self.file_handle,
-                    csv_file_properties=self.csv_file_properties,
+                file_handle=self.file_handle,
+                csv_file_properties=self.csv_file_properties,
             ):
                 yield
 
@@ -116,11 +120,11 @@ class File:
         :return:
         """
         file_header: Optional[List[str]] = None
-        if get_config_file_metadata_value(self.config, "file_has_header"):
+        if self.config.file_metadata.file_has_header:
             file_header = (
                 self.file_handle.readline()
-                    .rstrip(self.csv_file_properties["file_row_terminator"])
-                    .split(self.csv_file_properties["file_value_separator"])
+                    .rstrip(self.csv_file_properties.file_row_terminator)
+                    .split(self.csv_file_properties.file_value_separator)
             )
 
         self.reset_file_handler()
@@ -135,8 +139,8 @@ class File:
         """
         first_row: List = (
             self.file_handle.readline()
-                .rstrip(self.csv_file_properties["file_row_terminator"])
-                .split(self.csv_file_properties["file_value_separator"])
+                .rstrip(self.csv_file_properties.file_row_terminator)
+                .split(self.csv_file_properties.file_value_separator)
         )
 
         self.reset_file_handler()
@@ -164,7 +168,8 @@ class File:
         """
         row_count: int = 0
         for row in get_csv_reader(
-                file_handle=self.file_handle, csv_file_properties=self.csv_file_properties
+            file_handle=self.file_handle,
+            csv_file_properties=self.csv_file_properties
         ):
             row_count += 1
 

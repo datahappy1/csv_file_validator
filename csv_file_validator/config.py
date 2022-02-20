@@ -2,18 +2,11 @@
 config.py
 """
 from dataclasses import dataclass
-from typing import Optional, Union
 
 from csv_file_validator.exceptions import InvalidConfigException
 
-MANDATORY_METADATA_KEYS = [
-    "file_value_separator",
-    "file_row_terminator",
-    "file_has_header",
-]
-OPTIONAL_METADATA_KEYS = ["file_value_quote_char"]
 
-
+@dataclass
 class FileMetadata:
     """
     file metadata class
@@ -22,18 +15,35 @@ class FileMetadata:
     file_value_separator: str
     file_value_quote_char: str
     file_row_terminator: str
-    file_has_header: str
+    file_has_header: bool
 
 
-@dataclass
 class Config:
     """
     config class
     """
 
-    file_metadata: FileMetadata
-    file_validation_rules: dict
-    column_validation_rules: dict
+    def __init__(self, file_metadata, file_validation_rules, column_validation_rules):
+        self.file_metadata: FileMetadata = FileMetadata(**file_metadata)
+        self.file_validation_rules: dict = file_validation_rules
+        self.column_validation_rules: dict = column_validation_rules
+        self._validate_data_types()
+
+    def _validate_data_types(self):
+        if any(x is not str for x in [
+            type(self.file_metadata.file_value_separator),
+            type(self.file_metadata.file_value_quote_char),
+            type(self.file_metadata.file_row_terminator)
+        ]):
+            raise ValueError
+        if type(self.file_metadata.file_has_header) is not bool:
+            raise ValueError
+
+        if any(x is not dict for x in [
+            type(self.column_validation_rules),
+            type(self.file_validation_rules)
+        ]):
+            raise ValueError
 
 
 def get_validated_config(config: dict) -> Config:
@@ -45,39 +55,17 @@ def get_validated_config(config: dict) -> Config:
     if not config.get("file_metadata"):
         raise InvalidConfigException("config file missing metadata object")
 
-    if (
-            not config.get("file_metadata").get("file_value_separator")
-            or not config.get("file_metadata").get("file_row_terminator")
-            or not config.get("file_metadata").get("file_has_header") in [True, False]
-    ):
-        raise InvalidConfigException(
-            "config file metadata object not containing all mandatory keys"
-        )
-
-    if not config.get("file_validation_rules") and not config.get(
-            "column_validation_rules"
-    ):
+    if not config.get("file_validation_rules") and \
+            not config.get("column_validation_rules"):
         raise InvalidConfigException(
             "config file missing file_validation_rules object and "
             "column_validation_rules object"
         )
 
-    return Config(**config)
+    config.setdefault("file_validation_rules", dict())
+    config.setdefault("column_validation_rules", dict())
 
-
-def get_config_file_metadata_value(config, metadata_key) -> Optional[Union[str, bool]]:
-    """
-    get_config_file_metadata configuration item function
-    :param config:
-    :param metadata_key:
-    :return:
-    """
-    metadata_item: Optional[Union[str, bool]] = None
     try:
-        metadata_item = config.file_metadata[metadata_key]
-    except KeyError:
-        if metadata_key in MANDATORY_METADATA_KEYS:
-            raise InvalidConfigException(
-                f"config file missing file_metadata key {metadata_key}"
-            )
-    return metadata_item
+        return Config(**config)
+    except (ValueError, TypeError) as config_err:
+        raise InvalidConfigException(config_err)

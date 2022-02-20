@@ -10,16 +10,16 @@ from csv_file_validator.file import File
 from csv_file_validator.validation_functions import execute_mapped_validation_function
 
 
-def validate_file(file_level_validations: dict, file: File) -> int:
+def validate_file(file_validations: dict, file: File) -> int:
     """
-    function for validating a file, for every file level validation, call
+    function for validating a file, for every file validation, call
     the mapped validation function and process it
     :return:
     """
-    file_level_validations_fail_count: int = 0
+    file_validations_fail_count: int = 0
 
-    for validation, validation_value in file_level_validations.items():
-        file_level_validations_fail_count += execute_mapped_validation_function(
+    for validation, validation_value in file_validations.items():
+        file_validations_fail_count += execute_mapped_validation_function(
             validation,
             **{
                 "file_name": file.file_name,
@@ -30,36 +30,44 @@ def validate_file(file_level_validations: dict, file: File) -> int:
             },
         )
 
-    return file_level_validations_fail_count
+    return file_validations_fail_count
 
 
-def validate_column_validation_rules(config: Config, file: File) -> None:
+def check_column_validation_rules_align_with_file_content(
+        config: Config, file: File
+) -> None:
     """
-    function to validate column level validation rules with the file content
+    function checking column validation rules align with the file content
     :param config:
     :param file:
     :return:
     """
+    column_names_in_file: List[str] = []
+    column_indexes_in_file: List[str] = []
+
     if file.file_header:
-        _column_level_validations_from_file: List = file.file_header
+        column_names_in_file = file.file_header
     else:
-        _column_level_validations_from_file: List = [
-            str(val) for val in range(0, file.get_first_row_column_count())
+        column_indexes_in_file = [
+            str(index) for index in range(0, file.get_first_row_column_count())
         ]
 
-    _column_validation_rule_names_from_config: List = list(
+    column_identifiers_in_file: List[str] = \
+        column_names_in_file + column_indexes_in_file
+
+    column_validation_rules_names_in_config: List = list(
         config.column_validation_rules.keys()
     )
 
-    if not _column_level_validations_from_file:
+    if not column_identifiers_in_file:
         raise InvalidConfigException(
             "Column validations set in the config, "
             "but none of the expected columns found in the file"
         )
 
     if not all(
-            item in _column_level_validations_from_file
-            for item in _column_validation_rule_names_from_config
+            item in column_identifiers_in_file
+            for item in column_validation_rules_names_in_config
     ):
         raise InvalidConfigException(
             "Column validations set in the config, "
@@ -67,25 +75,25 @@ def validate_column_validation_rules(config: Config, file: File) -> None:
         )
 
 
-def validate_line_values(column_level_validations: dict, line: dict, idx: int) -> int:
+def validate_line_values(column_validations: dict, line: dict, idx: int) -> int:
     """
-    function for validating a line in a file, for every column level validation, call
+    function for validating a line in a file, for every column validation, call
     the mapped validation function and process it
-    :param column_level_validations:
+    :param column_validations:
     :param line:
     :param idx:
     :return:
     """
-    column_level_validations_fail_count: int = 0
+    column_validations_fail_count: int = 0
 
     # looping through column names and column values in the line items
     for column_name, column_value in line.items():
-        if column_name in column_level_validations:
+        if column_name in column_validations:
             # looping through validation items
-            for validation, validation_value in column_level_validations[
+            for validation, validation_value in column_validations[
                 column_name
             ].items():
-                column_level_validations_fail_count += execute_mapped_validation_function(
+                column_validations_fail_count += execute_mapped_validation_function(
                     validation,
                     **{
                         "column": column_name,
@@ -95,4 +103,4 @@ def validate_line_values(column_level_validations: dict, line: dict, idx: int) -
                     },
                 )
 
-    return column_level_validations_fail_count
+    return column_validations_fail_count

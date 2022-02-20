@@ -73,18 +73,12 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
 ```json
    "file_metadata":{
       "file_value_separator":",",
+      "file_value_quote_char": "\"",
       "file_row_terminator":"\n",
       "file_has_header":true
    },
 ```
-- at least one defined rule for at least one of the validation types `file_validation_rules`, `column_validation_rules`
-
-**Optional** objects in the validation schema json are:
-- in the `file_metadata` object, you can define an optional key `file_value_quote_char` to define the csv quote character
-  - using doublequotes example:
-    ```
-    "file_value_quote_char": "\""
-    ```
+- at least one defined rule
 
 #### Validation schema for a file with a header:
 If validating a file that has a header, we have to set the `file_has_header` key to `true` and define the column names in the `column validation rules`.

@@ -19,7 +19,7 @@ from csv_file_validator.file import File
 from csv_file_validator.settings_parser import prepare_settings, Settings
 from csv_file_validator.validation import (
     validate_file,
-    validate_column_validation_rules,
+    check_column_validation_rules_align_with_file_content,
     validate_line_values,
 )
 
@@ -44,7 +44,7 @@ class ValidationResultItem:
         return f"{self.file_name} -> {self.result.name}"
 
 
-def process_file_level_validations(
+def process_file_validations(
         config: Config, settings: Settings, file: File
 ) -> None:
     """
@@ -54,11 +54,11 @@ def process_file_level_validations(
     :param file:
     :return:
     """
-    file_level_failed_validations_counter: int = 0
+    failed_file_validations_counter: int = 0
 
-    file_level_validations: dict = config.file_validation_rules
-    file_level_validations_count: int = (
-        len(file_level_validations) if file_level_validations else 0
+    file_validations: dict = config.file_validation_rules
+    file_validations_count: int = (
+        len(file_validations) if file_validations else 0
     )
 
     if file.file_with_configured_header_has_empty_header:
@@ -66,19 +66,19 @@ def process_file_level_validations(
             "File with header set to true in the config has no header row"
         )
 
-    logger.info("Found %s file level validations", file_level_validations_count)
+    logger.info("Found %s file validations", file_validations_count)
 
-    if file_level_validations_count > 0:
+    if file_validations_count > 0:
         try:
-            file_level_failed_validations_counter = validate_file(
-                file_level_validations, file
+            failed_file_validations_counter = validate_file(
+                file_validations, file
             )
             if (
                     settings.raise_exception_and_halt_on_failed_validation
-                    and file_level_failed_validations_counter > 0
+                    and failed_file_validations_counter > 0
             ):
                 raise FoundValidationErrorException(
-                    "Evaluation of a file level validation rule failed"
+                    "Evaluation of a file validation rule failed"
                 )
 
         except InvalidConfigException as conf_err:
@@ -89,15 +89,15 @@ def process_file_level_validations(
             )
             raise conf_err
 
-    if file_level_failed_validations_counter > 0:
+    if failed_file_validations_counter > 0:
         raise FoundValidationErrorsException(
             f"Evaluation of "
-            f"{file_level_failed_validations_counter} "
+            f"{failed_file_validations_counter} "
             f"file validation rule(s) failed"
         )
 
 
-def process_column_level_validations(
+def process_column_validations(
         config: Config, settings: Settings, file: File
 ) -> None:
     """
@@ -111,30 +111,30 @@ def process_column_level_validations(
         logger.info("File has no rows to validate, skipping column level validations")
         return
 
-    column_level_failed_validations_counter: int = 0
+    failed_column_validations_counter: int = 0
 
-    validate_column_validation_rules(config, file)
+    check_column_validation_rules_align_with_file_content(config, file)
 
-    column_level_validations: dict = config.column_validation_rules
-    column_level_validations_count: int = (
-        len(column_level_validations) if column_level_validations else 0
+    column_validations: dict = config.column_validation_rules
+    column_validations_count: int = (
+        len(column_validations) if column_validations else 0
     )
 
-    logger.info("Found %s column level validations", column_level_validations_count)
+    logger.info("Found %s column validations", column_validations_count)
 
-    if column_level_validations_count > 0:
+    if column_validations_count > 0:
         try:
             for idx, line in file.file_read_generator():
                 validation_result: int = validate_line_values(
-                    column_level_validations, line, idx
+                    column_validations, line, idx
                 )
-                column_level_failed_validations_counter += validation_result
+                failed_column_validations_counter += validation_result
                 if (
                         settings.raise_exception_and_halt_on_failed_validation
                         and validation_result > 0
                 ):
                     raise FoundValidationErrorException(
-                        "Evaluation of a column level validation rule failed"
+                        "Evaluation of a column validation rule failed"
                     )
 
         except InvalidConfigException as conf_err:
@@ -152,10 +152,10 @@ def process_column_level_validations(
             )
             raise col_count_err
 
-    if column_level_failed_validations_counter > 0:
+    if failed_column_validations_counter > 0:
         raise FoundValidationErrorsException(
             f"Evaluation of "
-            f"{column_level_failed_validations_counter} "
+            f"{failed_column_validations_counter} "
             f"column validation rule(s) failed"
         )
 
@@ -180,7 +180,7 @@ def process_file(
     accumulated_errors: str = str()
 
     try:
-        process_file_level_validations(config=config, settings=settings, file=file)
+        process_file_validations(config=config, settings=settings, file=file)
     except (FoundValidationErrorException, InvalidConfigException) as halt_flow_exc:
         logger.info(
             "Failed to validate file %s , reason: %s",
@@ -193,7 +193,7 @@ def process_file(
         accumulated_errors += str(found_validation_errors_continue_flow_exc)
 
     try:
-        process_column_level_validations(config=config, settings=settings, file=file)
+        process_column_validations(config=config, settings=settings, file=file)
     except (
             FoundValidationErrorException,
             InvalidConfigException,
