@@ -34,7 +34,7 @@ def prepare_settings(settings_file_loc="settings.conf") -> Settings:
         )
 
     if not parser.has_option(
-            "project_scoped_settings", "SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE"
+        "project_scoped_settings", "SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE"
     ):
         raise InvalidSettingsException(
             "missing SKIP_COLUMN_VALIDATIONS_ON_EMPTY_FILE option "
@@ -42,7 +42,7 @@ def prepare_settings(settings_file_loc="settings.conf") -> Settings:
         )
 
     if not parser.has_option(
-            "project_scoped_settings", "RAISE_EXCEPTION_AND_HALT_ON_FAILED_VALIDATION"
+        "project_scoped_settings", "RAISE_EXCEPTION_AND_HALT_ON_FAILED_VALIDATION"
     ):
         raise InvalidSettingsException(
             "missing RAISE_EXCEPTION_AND_HALT_ON_FAILED_VALIDATION option "

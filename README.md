@@ -21,6 +21,7 @@ Validation schema is a json file. Let's have a closer look at a real life exampl
 {
    "file_metadata":{
       "file_value_separator":",",
+      "file_value_quote_char": "\"",
       "file_row_terminator":"\n",
       "file_has_header":true
    },
@@ -87,6 +88,7 @@ If validating a file that has a header, we have to set the `file_has_header` key
 {
    "file_metadata":{
       "file_value_separator":",",
+      "file_value_quote_char": "\"",
       "file_row_terminator":"\n",
       "file_has_header":true
    },
@@ -142,6 +144,7 @@ If validating a file that has no header, we have to set the `file_has_header` ke
 {
    "file_metadata":{
       "file_value_separator":",",
+      "file_value_quote_char": "\"",
       "file_row_terminator":"\n",
       "file_has_header":false
    },

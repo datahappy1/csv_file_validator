@@ -44,9 +44,7 @@ class ValidationResultItem:
         return f"{self.file_name} -> {self.result.name}"
 
 
-def process_file_validations(
-        config: Config, settings: Settings, file: File
-) -> None:
+def process_file_validations(config: Config, settings: Settings, file: File) -> None:
     """
     process file level validations function
     :param config:
@@ -57,9 +55,7 @@ def process_file_validations(
     failed_file_validations_counter: int = 0
 
     file_validations: dict = config.file_validation_rules
-    file_validations_count: int = (
-        len(file_validations) if file_validations else 0
-    )
+    file_validations_count: int = (len(file_validations) if file_validations else 0)
 
     if file.file_with_configured_header_has_empty_header:
         raise InvalidConfigException(
@@ -70,12 +66,10 @@ def process_file_validations(
 
     if file_validations_count > 0:
         try:
-            failed_file_validations_counter = validate_file(
-                file_validations, file
-            )
+            failed_file_validations_counter = validate_file(file_validations, file)
             if (
-                    settings.raise_exception_and_halt_on_failed_validation
-                    and failed_file_validations_counter > 0
+                settings.raise_exception_and_halt_on_failed_validation
+                and failed_file_validations_counter > 0
             ):
                 raise FoundValidationErrorException(
                     "Evaluation of a file validation rule failed"
@@ -97,9 +91,7 @@ def process_file_validations(
         )
 
 
-def process_column_validations(
-        config: Config, settings: Settings, file: File
-) -> None:
+def process_column_validations(config: Config, settings: Settings, file: File) -> None:
     """
     process column level validations function
     :param config:
@@ -130,8 +122,8 @@ def process_column_validations(
                 )
                 failed_column_validations_counter += validation_result
                 if (
-                        settings.raise_exception_and_halt_on_failed_validation
-                        and validation_result > 0
+                    settings.raise_exception_and_halt_on_failed_validation
+                    and validation_result > 0
                 ):
                     raise FoundValidationErrorException(
                         "Evaluation of a column validation rule failed"
@@ -161,7 +153,7 @@ def process_column_validations(
 
 
 def process_file(
-        config: Config, settings: Settings, file_name: str
+    config: Config, settings: Settings, file_name: str
 ) -> ValidationResultEnum:
     """
     process_file function
@@ -195,9 +187,9 @@ def process_file(
     try:
         process_column_validations(config=config, settings=settings, file=file)
     except (
-            FoundValidationErrorException,
-            InvalidConfigException,
-            InvalidLineColumnCountException,
+        FoundValidationErrorException,
+        InvalidConfigException,
+        InvalidLineColumnCountException,
     ) as halt_flow_exc:
         logger.info(
             "Failed to validate file %s , reason: %s",

@@ -23,7 +23,7 @@
   "column_validation_rules": {
     "SNo": {
       "allow_data_type": "int",
-      "allow_numeric_value_range": [
+      "allow_float_value_range": [
         0,
         10000
       ]
@@ -33,7 +33,7 @@
       "allow_regex":"[a-zA-Z].+"
     },
     "Confirmed": {
-      "allow_numeric_value_range": [
+      "allow_float_value_range": [
         0.0,
         100000.0
       ],

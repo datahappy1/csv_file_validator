@@ -53,12 +53,12 @@ def logging_decorator(func):
         try:
             validation_result: int = func(**kwargs)
         except (
-                ValueError,
-                TypeError,
-                KeyError,
-                IndexError,
-                AttributeError,
-                ArithmeticError,
+            ValueError,
+            TypeError,
+            KeyError,
+            IndexError,
+            AttributeError,
+            ArithmeticError,
         ) as err:
             # in case validation function raised Error,
             # still need to add one more failed validation
@@ -84,7 +84,7 @@ def check_file_extension(**kwargs) -> int:
     :return:
     """
     if os.path.splitext(kwargs.get("file_name"))[1][1:] == kwargs.get(
-            "validation_value"
+        "validation_value"
     ):
         return 0
     return 1
@@ -115,9 +115,9 @@ def check_file_size_range(**kwargs) -> int:
     :return:
     """
     if (
-            kwargs.get("validation_value")[1]
-            >= kwargs.get("file_size")
-            >= kwargs.get("validation_value")[0]
+        kwargs.get("validation_value")[1]
+        >= kwargs.get("file_size")
+        >= kwargs.get("validation_value")[0]
     ):
         return 0
     return 1
@@ -132,9 +132,9 @@ def check_file_row_count_range(**kwargs) -> int:
     :return:
     """
     if (
-            kwargs.get("validation_value")[0]
-            <= kwargs.get("file_row_count")
-            <= kwargs.get("validation_value")[1]
+        kwargs.get("validation_value")[0]
+        <= kwargs.get("file_row_count")
+        <= kwargs.get("validation_value")[1]
     ):
         return 0
     return 1
@@ -190,9 +190,9 @@ def check_column_allow_int_value_range(**kwargs) -> int:
     :return:
     """
     if (
-            kwargs.get("validation_value")[0]
-            <= int(kwargs.get("column_value"))
-            <= kwargs.get("validation_value")[1]
+        kwargs.get("validation_value")[0]
+        <= int(kwargs.get("column_value"))
+        <= kwargs.get("validation_value")[1]
     ):
         return 0
     return 1

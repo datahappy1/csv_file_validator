@@ -34,7 +34,7 @@ def validate_file(file_validations: dict, file: File) -> int:
 
 
 def check_column_validation_rules_align_with_file_content(
-        config: Config, file: File
+    config: Config, file: File
 ) -> None:
     """
     function checking column validation rules align with the file content
@@ -52,8 +52,9 @@ def check_column_validation_rules_align_with_file_content(
             str(index) for index in range(0, file.get_first_row_column_count())
         ]
 
-    column_identifiers_in_file: List[str] = \
-        column_names_in_file + column_indexes_in_file
+    column_identifiers_in_file: List[
+        str
+    ] = column_names_in_file + column_indexes_in_file
 
     column_validation_rules_names_in_config: List = list(
         config.column_validation_rules.keys()
@@ -66,8 +67,8 @@ def check_column_validation_rules_align_with_file_content(
         )
 
     if not all(
-            item in column_identifiers_in_file
-            for item in column_validation_rules_names_in_config
+        item in column_identifiers_in_file
+        for item in column_validation_rules_names_in_config
     ):
         raise InvalidConfigException(
             "Column validations set in the config, "
@@ -90,9 +91,7 @@ def validate_line_values(column_validations: dict, line: dict, idx: int) -> int:
     for column_name, column_value in line.items():
         if column_name in column_validations:
             # looping through validation items
-            for validation, validation_value in column_validations[
-                column_name
-            ].items():
+            for validation, validation_value in column_validations[column_name].items():
                 column_validations_fail_count += execute_mapped_validation_function(
                     validation,
                     **{
