@@ -22,10 +22,10 @@ def validate_file(file_validations: dict, file: File) -> int:
         file_validations_fail_count += execute_mapped_validation_function(
             validation,
             **{
-                "file_name": file.file_name,
-                "file_header": file.file_header,
-                "file_row_count": file.file_data_row_count,
-                "file_size": file.file_size,
+                "file_name": file.name,
+                "file_header": file.header,
+                "file_row_count": file.data_row_count,
+                "file_size": file.size,
                 "validation_value": validation_value,
             },
         )
@@ -42,14 +42,16 @@ def check_column_validation_rules_align_with_file_content(
     :param file:
     :return:
     """
-    if file.file_header:
-        column_identifiers_in_file = file.file_header
+    column_identifiers_in_file: List[str]
+
+    if file.header:
+        column_identifiers_in_file = file.header
     else:
         column_identifiers_in_file = [
             str(index) for index in range(0, file.get_first_row_column_count())
         ]
 
-    column_validation_rules_names_in_config: List = list(
+    column_validation_rules_names_in_config: List[str] = list(
         config.column_validation_rules.keys()
     )
 

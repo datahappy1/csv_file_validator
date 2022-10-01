@@ -1,21 +1,25 @@
 """
 config.py
 """
-from dataclasses import dataclass
-
 from csv_file_validator.exceptions import InvalidConfigException
 
 
-@dataclass
 class FileMetadata:
     """
     file metadata class
     """
 
-    file_value_separator: str
-    file_value_quote_char: str
-    file_row_terminator: str
-    file_has_header: bool
+    def __init__(
+        self,
+        file_value_separator,
+        file_value_quote_char,
+        file_row_terminator,
+        file_has_header,
+    ):
+        self.file_value_separator: str = file_value_separator
+        self.file_value_quote_char: str = file_value_quote_char
+        self.file_row_terminator: str = file_row_terminator
+        self.file_has_header: bool = file_has_header
 
 
 class Config:
@@ -39,6 +43,7 @@ class Config:
             ]
         ):
             raise ValueError
+
         if type(self.file_metadata.file_has_header) is not bool:
             raise ValueError
 

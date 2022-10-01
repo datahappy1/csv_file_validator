@@ -23,9 +23,8 @@ from csv_file_validator.validation import (
     validate_line_values,
 )
 
-LOGGING_LEVEL = logging.DEBUG
-
-logging.basicConfig(level=LOGGING_LEVEL)
+logging_level = logging.DEBUG
+logging.basicConfig(level=logging_level)
 logger = logging.getLogger(__name__)
 
 
@@ -57,7 +56,7 @@ def process_file_validations(config: Config, settings: Settings, file: File) -> 
     file_validations: dict = config.file_validation_rules
     file_validations_count: int = (len(file_validations) if file_validations else 0)
 
-    if file.file_with_configured_header_has_empty_header:
+    if file.with_configured_header_has_empty_header:
         raise InvalidConfigException(
             "File with header set to true in the config has no header row"
         )
@@ -78,7 +77,7 @@ def process_file_validations(config: Config, settings: Settings, file: File) -> 
         except InvalidConfigException as conf_err:
             logger.error(
                 "File %s cannot be validated, config file has issues, %s",
-                file.file_name,
+                file.name,
                 conf_err,
             )
             raise conf_err
@@ -99,7 +98,7 @@ def process_column_validations(config: Config, settings: Settings, file: File) -
     :param file:
     :return:
     """
-    if file.file_has_no_data_rows and settings.skip_column_validations_on_empty_file:
+    if file.has_no_data_rows and settings.skip_column_validations_on_empty_file:
         logger.info("File has no rows to validate, skipping column level validations")
         return
 
@@ -132,14 +131,14 @@ def process_column_validations(config: Config, settings: Settings, file: File) -
         except InvalidConfigException as conf_err:
             logger.error(
                 "File %s cannot be validated, config file has issues, %s",
-                file.file_name,
+                file.name,
                 conf_err,
             )
             raise conf_err
         except InvalidLineColumnCountException as col_count_err:
             logger.error(
                 "File %s cannot be validated, column count is not consistent, %s",
-                file.file_name,
+                file.name,
                 col_count_err,
             )
             raise col_count_err
@@ -175,9 +174,7 @@ def process_file(
         process_file_validations(config=config, settings=settings, file=file)
     except (FoundValidationErrorException, InvalidConfigException) as halt_flow_exc:
         logger.info(
-            "Failed to validate file %s , reason: %s",
-            file_name,
-            halt_flow_exc.__str__(),
+            "Failed to validate file %s , reason: %s", file_name, str(halt_flow_exc),
         )
         file.close_file_handler()
         return ValidationResultEnum.FAILURE
@@ -192,9 +189,7 @@ def process_file(
         InvalidLineColumnCountException,
     ) as halt_flow_exc:
         logger.info(
-            "Failed to validate file %s , reason: %s",
-            file_name,
-            halt_flow_exc.__str__(),
+            "Failed to validate file %s , reason: %s", file_name, str(halt_flow_exc),
         )
         file.close_file_handler()
         return ValidationResultEnum.FAILURE

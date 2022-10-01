@@ -2,19 +2,22 @@
 settings parser
 """
 from configparser import ConfigParser
-from dataclasses import dataclass
 
 from csv_file_validator.exceptions import InvalidSettingsException
 
 
-@dataclass
 class Settings:
     """
     settings class
     """
 
-    skip_column_validations_on_empty_file: bool
-    raise_exception_and_halt_on_failed_validation: bool
+    def __init__(
+        self,
+        skip_column_validations_on_empty_file,
+        raise_exception_and_halt_on_failed_validation,
+    ):
+        self.skip_column_validations_on_empty_file: bool = skip_column_validations_on_empty_file
+        self.raise_exception_and_halt_on_failed_validation: bool = raise_exception_and_halt_on_failed_validation
 
 
 def prepare_settings(settings_file_loc="settings.conf") -> Settings:
