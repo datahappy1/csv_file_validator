@@ -13,7 +13,7 @@ from dateutil import parser
 
 from csv_file_validator.exceptions import InvalidConfigException
 
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def _log_validation_error(func_name: str, **kwargs) -> None:
@@ -38,7 +38,7 @@ def _log_validation_error(func_name: str, **kwargs) -> None:
     if kwargs.get("Exception"):
         logged_string += f' - Exception: {kwargs["Exception"]}'
 
-    LOGGER.error(logged_string)
+    logger.error(logged_string)
 
 
 def logging_decorator(func):
