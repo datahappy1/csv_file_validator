@@ -42,14 +42,14 @@ def check_column_validation_rules_align_with_file_content(
     :param file:
     :return:
     """
-    column_identifiers_in_file: List[str]
+    column_identifiers_in_file: List[str] = []
 
     if file.header:
-        column_identifiers_in_file = file.header
+        column_identifiers_in_file.extend(file.header)
     else:
-        column_identifiers_in_file = [
+        column_identifiers_in_file.extend([
             str(index) for index in range(0, file.get_first_row_column_count())
-        ]
+        ])
 
     column_validation_rules_names_in_config: List[str] = list(
         config.column_validation_rules.keys()
